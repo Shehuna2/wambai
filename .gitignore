@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+backend/.venv/
+node_modules/
+.DS_Store
+TXT && git add -A && git commit --amend --no-edit
