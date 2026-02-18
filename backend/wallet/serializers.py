@@ -1,5 +1,7 @@
+from django.conf import settings
 from rest_framework import serializers
-from .models import WalletBalance, LedgerEntry
+
+from .models import LedgerEntry, WalletBalance
 
 
 class WalletBalanceSerializer(serializers.ModelSerializer):
@@ -15,5 +17,5 @@ class LedgerEntrySerializer(serializers.ModelSerializer):
 
 
 class TopUpInitSerializer(serializers.Serializer):
-    currency = serializers.CharField(max_length=3)
+    currency = serializers.ChoiceField(choices=settings.SUPPORTED_CURRENCIES)
     amount_cents = serializers.IntegerField(min_value=1)

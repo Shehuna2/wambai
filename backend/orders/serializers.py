@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from .models import Cart, CartItem, Order, VendorOrder
@@ -30,7 +31,7 @@ class CartSerializer(serializers.ModelSerializer):
 
 class CheckoutSerializer(serializers.Serializer):
     payment_method = serializers.ChoiceField(choices=[Order.PaymentMethod.WALLET, Order.PaymentMethod.FINCRA])
-    wallet_currency = serializers.CharField(required=False)
+    wallet_currency = serializers.ChoiceField(choices=settings.SUPPORTED_CURRENCIES, required=False)
     use_wallet_amount_cents = serializers.IntegerField(required=False, min_value=1)
 
 
@@ -44,3 +45,4 @@ class VendorOrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = VendorOrder
         fields = "__all__"
+        read_only_fields = ["order", "shop", "subtotal_ngn_cents"]

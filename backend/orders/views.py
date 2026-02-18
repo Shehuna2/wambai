@@ -5,8 +5,15 @@ from rest_framework.views import APIView
 from payments.fincra import FincraClient
 
 from .models import Cart, CartItem, Order, VendorOrder
-from .serializers import CartItemSerializer, CartSerializer, CheckoutSerializer, OrderSerializer, VendorOrderSerializer
-from .services import cart_total_ngn_cents, create_paid_order_from_cart, wallet_checkout
+from .permissions import IsVendorOrderOwner
+from .serializers import (
+    CartItemSerializer,
+    CartSerializer,
+    CheckoutSerializer,
+    OrderSerializer,
+    VendorOrderSerializer,
+)
+from .services import cart_total_ngn_cents, wallet_checkout
 
 
 class CartView(APIView):
@@ -14,19 +21,55 @@ class CartView(APIView):
 
     def get(self, request):
         cart, _ = Cart.objects.get_or_create(user=request.user)
-        return Response(CartSerializer(cart).data)
+        grouped = {}
+        for item in cart.items.select_related("product", "product__shop"):
+            shop_id = item.product.shop_id
+            shop_group = grouped.setdefault(
+                str(shop_id),
+                {
+                    "shop": {
+                        "id": shop_id,
+                        "name": item.product.shop.name,
+                        "location": item.product.shop.location,
+                    },
+                    "items": [],
+                },
+            )
+            shop_group["items"].append(
+                {
+                    "id": item.id,
+                    "qty": item.qty,
+                    "product": {
+                        "id": item.product_id,
+                        "title": item.product.title,
+                        "price_cents": item.product.price_cents,
+                        "currency": item.product.currency,
+                    },
+                }
+            )
+        return Response({"cart": CartSerializer(cart).data, "grouped_by_shop": grouped})
 
 
 class CartItemCreateView(generics.CreateAPIView):
     serializer_class = CartItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
         cart, _ = Cart.objects.get_or_create(user=self.request.user)
+        product = serializer.validated_data["product"]
+        qty = serializer.validated_data["qty"]
+        existing = CartItem.objects.filter(cart=cart, product=product).first()
+        if existing:
+            existing.qty = qty
+            existing.full_clean()
+            existing.save(update_fields=["qty"])
+            return
         serializer.save(cart=cart)
 
 
 class CartItemUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CartItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         cart, _ = Cart.objects.get_or_create(user=self.request.user)
@@ -42,11 +85,17 @@ class CheckoutView(APIView):
         method = serializer.validated_data["payment_method"]
 
         if method == Order.PaymentMethod.WALLET:
-            order = wallet_checkout(request.user, wallet_currency=serializer.validated_data.get("wallet_currency", "NGN"))
+            order = wallet_checkout(
+                request.user,
+                wallet_currency=serializer.validated_data.get("wallet_currency", "NGN"),
+                use_wallet_amount_cents=serializer.validated_data.get("use_wallet_amount_cents"),
+            )
             return Response(OrderSerializer(order).data)
 
         cart, _ = Cart.objects.get_or_create(user=request.user)
         total = cart_total_ngn_cents(cart)
+        if total <= 0:
+            return Response({"detail": "Cart is empty"}, status=status.HTTP_400_BAD_REQUEST)
         order = Order.objects.create(
             buyer=request.user,
             total_ngn_cents=total,
@@ -64,6 +113,7 @@ class CheckoutView(APIView):
 
 class OrdersView(generics.ListAPIView):
     serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Order.objects.filter(buyer=self.request.user).order_by("-created_at")
@@ -71,6 +121,7 @@ class OrdersView(generics.ListAPIView):
 
 class VendorOrdersView(generics.ListAPIView):
     serializer_class = VendorOrderSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return VendorOrder.objects.filter(shop__owner=self.request.user).order_by("-id")
@@ -78,6 +129,8 @@ class VendorOrdersView(generics.ListAPIView):
 
 class VendorOrderViewSet(viewsets.ModelViewSet):
     serializer_class = VendorOrderSerializer
+    permission_classes = [IsVendorOrderOwner]
+    http_method_names = ["get", "patch", "head", "options"]
 
     def get_queryset(self):
         return VendorOrder.objects.filter(shop__owner=self.request.user)

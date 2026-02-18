@@ -1,7 +1,6 @@
 import json
 
 from django.db import transaction
-from django.http import HttpResponseBadRequest
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,9 +19,13 @@ class FincraWebhookView(APIView):
     def post(self, request):
         signature = request.headers.get("x-signature") or request.headers.get("x-fincra-signature")
         if not verify_fincra_signature(request.body, signature):
-            return HttpResponseBadRequest("Invalid signature")
+            return Response({"detail": "Invalid or missing signature"}, status=status.HTTP_400_BAD_REQUEST)
 
-        payload = json.loads(request.body.decode("utf-8"))
+        try:
+            payload = json.loads(request.body.decode("utf-8"))
+        except json.JSONDecodeError:
+            return Response({"detail": "Invalid JSON payload"}, status=status.HTTP_400_BAD_REQUEST)
+
         event_id = payload.get("id") or payload.get("eventId")
         reference = payload.get("data", {}).get("reference")
         status_value = payload.get("data", {}).get("status", "").upper()
@@ -31,8 +34,8 @@ class FincraWebhookView(APIView):
             return Response({"ignored": True}, status=status.HTTP_200_OK)
 
         with transaction.atomic():
-            if LedgerEntry.objects.filter(meta__event_id=event_id).exists() and event_id:
-                return Response({"duplicate": True})
+            if event_id and LedgerEntry.objects.filter(meta__event_id=event_id).exists():
+                return Response({"duplicate": True}, status=status.HTTP_200_OK)
 
             entry = LedgerEntry.objects.select_for_update().filter(reference=reference).first()
             if entry and entry.status == LedgerEntry.EntryStatus.PENDING:
@@ -42,6 +45,9 @@ class FincraWebhookView(APIView):
 
             if reference.startswith("order-"):
                 order_id = reference.split("order-")[-1]
-                Order.objects.filter(id=order_id, status=Order.OrderStatus.PENDING_PAYMENT).update(status=Order.OrderStatus.PAID)
+                Order.objects.filter(
+                    id=order_id,
+                    status=Order.OrderStatus.PENDING_PAYMENT,
+                ).update(status=Order.OrderStatus.PAID)
 
-        return Response({"ok": True})
+        return Response({"ok": True}, status=status.HTTP_200_OK)
