@@ -42,9 +42,16 @@ def _create_vendor_orders_and_decrement_stock(order: Order, items):
         vendor_order = VendorOrder.objects.create(order=order, shop=shop, subtotal_ngn_cents=subtotal)
         for cart_item in group_items:
             product = Product.objects.select_for_update().get(pk=cart_item.product_id)
-            if product.stock_qty < cart_item.qty:
+            requested_qty = Decimal(cart_item.qty)
+            current_stock = Decimal(product.stock_qty)
+            if product.unit in Product.WHOLE_NUMBER_UNITS and requested_qty != requested_qty.quantize(Decimal("1")):
+                raise ValidationError(f"Quantity must be whole-number for {product.title}")
+            next_stock = current_stock - requested_qty
+            if next_stock < 0:
                 raise ValidationError(f"Insufficient stock for {product.title}")
-            product.stock_qty = Decimal(product.stock_qty) - Decimal(cart_item.qty)
+            if product.unit in Product.WHOLE_NUMBER_UNITS and next_stock != next_stock.quantize(Decimal("1")):
+                raise ValidationError(f"Stock must remain whole-number for {product.title}")
+            product.stock_qty = next_stock
             product.save(update_fields=["stock_qty"])
 
             OrderItem.objects.create(
