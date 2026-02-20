@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
 import { api } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 import { Product, Shop } from '../../types';
 
 export const BuyerHomeScreen = () => {
+  const { user } = useAuth();
   const [shops, setShops] = useState<Shop[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
 
@@ -15,6 +17,10 @@ export const BuyerHomeScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
+      <View>
+        <Text style={{ fontWeight: '700', fontSize: 18 }}>Welcome {user?.email ?? 'Buyer'}</Text>
+        <Text>Default currency: {user?.profile?.default_currency ?? 'NGN'}</Text>
+      </View>
       <View>
         <Text style={{ fontWeight: '700', fontSize: 18 }}>Categories</Text>
         <Text>Clothing • Wool • Fabric • Other</Text>

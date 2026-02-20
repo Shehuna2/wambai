@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
@@ -12,11 +12,25 @@ import { CheckoutScreen } from '../screens/buyer/CheckoutScreen';
 import { MyShopScreen } from '../screens/vendor/MyShopScreen';
 import { MyProductsScreen } from '../screens/vendor/MyProductsScreen';
 import { VendorOrdersScreen } from '../screens/vendor/VendorOrdersScreen';
+import { LoginScreen } from '../screens/LoginScreen';
+import { RegisterScreen } from '../screens/RegisterScreen';
 
 const Tab = createBottomTabNavigator();
 
+const AuthStack = () => {
+  const [screen, setScreen] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  if (screen === 'REGISTER') {
+    return <RegisterScreen onShowLogin={() => setScreen('LOGIN')} />;
+  }
+  return <LoginScreen onShowRegister={() => setScreen('REGISTER')} />;
+};
+
 export const AppNavigator = () => {
-  const { mode } = useAuth();
+  const { token, mode } = useAuth();
+
+  if (!token) {
+    return <AuthStack />;
+  }
 
   return (
     <NavigationContainer>
