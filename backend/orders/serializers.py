@@ -1,10 +1,16 @@
+from decimal import Decimal
+
 from django.conf import settings
 from rest_framework import serializers
+
+from catalog.models import Product
 
 from .models import Cart, CartItem, Order, VendorOrder
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    qty = serializers.DecimalField(max_digits=12, decimal_places=3, coerce_to_string=True)
+
     class Meta:
         model = CartItem
         fields = ["id", "product", "qty"]
@@ -14,10 +20,17 @@ class CartItemSerializer(serializers.ModelSerializer):
         qty = attrs.get("qty", self.instance.qty if self.instance else None)
         if qty is None:
             return attrs
-        if qty < product.min_order_qty:
+
+        qty = Decimal(qty)
+        min_qty = Decimal(product.min_order_qty)
+        step = Decimal(product.qty_step)
+        if qty < min_qty:
             raise serializers.ValidationError("Quantity below minimum")
-        if (qty - product.min_order_qty) % product.qty_step != 0:
+        steps = (qty - min_qty) / step
+        if steps != steps.quantize(Decimal("1")):
             raise serializers.ValidationError("Quantity does not match step")
+        if product.unit in {Product.Unit.PIECE, Product.Unit.BUNDLE} and qty != qty.quantize(Decimal("1")):
+            raise serializers.ValidationError("Quantity must be whole number for this unit")
         return attrs
 
 

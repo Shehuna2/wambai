@@ -6,10 +6,21 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from orders.models import Order
+from orders.services import post_conversion_and_finalize_order
 from wallet.models import LedgerEntry
-from wallet.services import post_ledger_entry
+from wallet.services import fail_entries_by_reference, post_ledger_entry
 
 from .fincra import verify_fincra_signature
+from .models import FxConversion, WebhookEvent
+
+
+def _extract_reference(data):
+    return (
+        data.get("reference")
+        or data.get("payment", {}).get("reference")
+        or data.get("transaction", {}).get("reference")
+        or data.get("conversion", {}).get("reference")
+    )
 
 
 class FincraWebhookView(APIView):
@@ -26,28 +37,38 @@ class FincraWebhookView(APIView):
         except json.JSONDecodeError:
             return Response({"detail": "Invalid JSON payload"}, status=status.HTTP_400_BAD_REQUEST)
 
-        event_id = payload.get("id") or payload.get("eventId")
-        reference = payload.get("data", {}).get("reference")
-        status_value = payload.get("data", {}).get("status", "").upper()
+        event_id = str(payload.get("id") or payload.get("eventId") or "")
+        data = payload.get("data", {}) if isinstance(payload.get("data", {}), dict) else {}
+        reference = _extract_reference(data)
+        status_value = str(data.get("status") or payload.get("status") or "").upper()
 
-        if not reference or status_value not in {"SUCCESSFUL", "COMPLETED", "SUCCESS"}:
-            return Response({"ignored": True}, status=status.HTTP_200_OK)
-
-        with transaction.atomic():
-            if event_id and LedgerEntry.objects.filter(meta__event_id=event_id).exists():
+        if event_id:
+            _, created = WebhookEvent.objects.get_or_create(
+                provider="FINCRA",
+                event_id=event_id,
+                defaults={"payload": payload},
+            )
+            if not created:
                 return Response({"duplicate": True}, status=status.HTTP_200_OK)
 
+        if not reference:
+            return Response({"ignored": True}, status=status.HTTP_200_OK)
+
+        success = status_value in {"SUCCESSFUL", "COMPLETED", "SUCCESS"}
+
+        with transaction.atomic():
             entry = LedgerEntry.objects.select_for_update().filter(reference=reference).first()
-            if entry and entry.status == LedgerEntry.EntryStatus.PENDING:
-                entry.meta = {**entry.meta, "event_id": event_id}
-                entry.save(update_fields=["meta", "updated_at"])
+            if entry and success and entry.status == LedgerEntry.EntryStatus.PENDING:
                 post_ledger_entry(entry)
 
-            if reference.startswith("order-"):
-                order_id = reference.split("order-")[-1]
-                Order.objects.filter(
-                    id=order_id,
-                    status=Order.OrderStatus.PENDING_PAYMENT,
-                ).update(status=Order.OrderStatus.PAID)
+            conversion = FxConversion.objects.select_for_update().filter(reference=reference).first()
+            if conversion:
+                if success:
+                    post_conversion_and_finalize_order(reference)
+                else:
+                    conversion.status = FxConversion.Status.FAILED
+                    conversion.save(update_fields=["status", "updated_at"])
+                    fail_entries_by_reference(reference)
+                    Order.objects.filter(conversion_reference=reference).update(status=Order.OrderStatus.FAILED_PAYMENT)
 
         return Response({"ok": True}, status=status.HTTP_200_OK)

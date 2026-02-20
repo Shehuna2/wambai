@@ -13,6 +13,7 @@ export const WalletScreen = () => {
   const [currency, setCurrency] = useState('NGN');
   const [amount, setAmount] = useState('100000');
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const load = () => api.get('/wallet/').then(r => {
     setBalances(r.data.balances ?? []);
@@ -35,13 +36,27 @@ export const WalletScreen = () => {
         return <Text key={code}>{code}: {balance / 100}</Text>;
       })}
       <View style={{ gap: 8 }}>
-        <Text>Top-up Currency ({currencies.join(', ')})</Text>
-        <TextInput value={currency} onChangeText={setCurrency} style={{ borderWidth: 1, padding: 8 }} />
+        <Text>Top-up Currency</Text>
+        {currencies.map(code => (
+          <Button key={code} title={code + (currency === code ? ' ✓' : '')} onPress={() => setCurrency(code)} />
+        ))}
         <TextInput value={amount} onChangeText={setAmount} keyboardType="number-pad" style={{ borderWidth: 1, padding: 8 }} />
         <Button title="Initialize top-up" onPress={async () => {
-          const { data } = await api.post('/wallet/topup/init/', { currency, amount_cents: Number(amount) });
-          setCheckoutUrl(data.checkout_url);
+          try {
+            setError('');
+            const parsedAmount = Number.parseInt(amount, 10);
+            if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+              setError('Enter a valid whole-number minor-unit amount');
+              return;
+            }
+            const { data } = await api.post('/wallet/topup/init/', { currency, amount_cents: parsedAmount });
+            setCheckoutUrl(data.checkout_url);
+          } catch (err: any) {
+            const message = err?.response?.data?.detail ?? 'currency not supported for checkout funding';
+            setError(message);
+          }
         }} />
+        {!!error && <Text>{error}</Text>}
       </View>
       <Text style={{ fontWeight: '700' }}>Transactions</Text>
       {ledger.map((entry, index) => <Text key={index}>{entry.type} {entry.amount_cents / 100} {entry.currency} ({entry.status})</Text>)}
