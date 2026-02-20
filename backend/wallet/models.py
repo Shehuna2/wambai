@@ -10,6 +10,7 @@ class Wallet(models.Model):
 class WalletBalance(models.Model):
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="balances")
     currency = models.CharField(max_length=3)
+    # Stored in minor units for the currency (e.g. kobo for NGN, whole units for XOF/XAF).
     available_cents = models.BigIntegerField(default=0)
 
     class Meta:
@@ -31,6 +32,7 @@ class LedgerEntry(models.Model):
 
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="entries")
     currency = models.CharField(max_length=3)
+    # Stored in minor units for the currency.
     amount_cents = models.BigIntegerField()
     type = models.CharField(max_length=20, choices=EntryType.choices)
     status = models.CharField(max_length=20, choices=EntryStatus.choices, default=EntryStatus.PENDING)

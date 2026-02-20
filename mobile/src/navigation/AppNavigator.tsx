@@ -8,6 +8,7 @@ import { BuyerHomeScreen } from '../screens/buyer/HomeScreen';
 import { BuyerShopsScreen } from '../screens/buyer/ShopsScreen';
 import { CartScreen } from '../screens/buyer/CartScreen';
 import { WalletScreen } from '../screens/buyer/WalletScreen';
+import { CheckoutScreen } from '../screens/buyer/CheckoutScreen';
 import { MyShopScreen } from '../screens/vendor/MyShopScreen';
 import { MyProductsScreen } from '../screens/vendor/MyProductsScreen';
 import { VendorOrdersScreen } from '../screens/vendor/VendorOrdersScreen';
@@ -26,6 +27,7 @@ export const AppNavigator = () => {
             <Tab.Screen name="Shops" component={BuyerShopsScreen} />
             <Tab.Screen name="Cart" component={CartScreen} />
             <Tab.Screen name="Wallet" component={WalletScreen} />
+            <Tab.Screen name="Checkout" component={CheckoutScreen} />
           </>
         ) : (
           <>

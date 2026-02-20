@@ -40,7 +40,7 @@ class TopUpInitView(APIView):
         fincra = FincraClient()
         checkout_url = fincra.initialize_checkout(
             reference=entry.reference,
-            amount_cents=entry.amount_cents,
+            amount_minor=entry.amount_cents,
             currency=entry.currency,
             customer_email=request.user.email,
         )
