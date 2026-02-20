@@ -4,14 +4,17 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppNavigator } from './navigation/AppNavigator';
-import { LoginScreen } from './screens/LoginScreen';
 
 const Root = () => {
-  const { token, loading } = useAuth();
+  const { loading } = useAuth();
   if (loading) {
-    return <View style={{ flex: 1, justifyContent: 'center' }}><ActivityIndicator /></View>;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center' }}>
+        <ActivityIndicator />
+      </View>
+    );
   }
-  return token ? <AppNavigator /> : <LoginScreen />;
+  return <AppNavigator />;
 };
 
 export default function App() {

@@ -1,11 +1,12 @@
 from rest_framework import viewsets
+
 from .models import Shop
 from .permissions import IsVendorAndOwnerOrReadOnly
 from .serializers import ShopSerializer
 
 
 class ShopViewSet(viewsets.ModelViewSet):
-    queryset = Shop.objects.filter(is_active=True)
+    queryset = Shop.objects.all()
     serializer_class = ShopSerializer
     permission_classes = [IsVendorAndOwnerOrReadOnly]
 
@@ -13,7 +14,10 @@ class ShopViewSet(viewsets.ModelViewSet):
         serializer.save(owner=self.request.user)
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        if self.request.user.is_authenticated and self.request.user.is_vendor and self.action in ["update", "partial_update", "destroy"]:
-            return qs.filter(owner=self.request.user)
-        return qs
+        qs = Shop.objects.all()
+        user = self.request.user
+        if user.is_authenticated and user.is_staff:
+            return qs
+        if user.is_authenticated and user.is_vendor:
+            return qs.filter(owner=user)
+        return qs.filter(is_active=True, is_approved=True)
