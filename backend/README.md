@@ -4,10 +4,10 @@
 
 - Custom user auth with buyer/vendor roles.
 - Multi-vendor shops/products with ownership permissions.
-- Multi-currency wallet + immutable ledger with atomic posting and row locking.
-- Fincra top-up init, HMAC SHA512 webhook verification, and idempotent webhook processing.
-- Checkout always settles in NGN, including quote + conversion initiation for non-NGN wallet balances.
-- Marketplace order splitting into per-vendor `VendorOrder` records.
+- Multi-currency wallet ledger stored in **minor units** per currency.
+- Fincra top-up init, HMAC SHA512 webhook verification, webhook idempotency via `WebhookEvent`.
+- Async-safe wallet FX checkout: non-NGN wallet payments stay `PENDING_PAYMENT` until conversion webhook confirmation.
+- Decimal quantities for cart/order flow (`qty_step`, `min_order_qty`, and stock support fractional units like yard/meter/kg).
 
 ## Setup
 
@@ -32,59 +32,26 @@ python manage.py runserver
 - `FINCRA_REDIRECT_URL`
 - `FINCRA_WEBHOOK_PATH`
 
-## Postman / HTTP Examples
+## Currency Minor-Unit Notes
 
-```http
-POST /api/auth/register/
-Content-Type: application/json
+Wallet/ledger/order math uses minor units; do not assume `/100` for every currency.
 
-{
-  "email": "buyer@example.com",
-  "password": "password123",
-  "is_buyer": true
-}
-```
+- exponent 2: `NGN`, `GHS`, `USD`, `GBP`, `EUR`
+- exponent 0: `XOF`, `XAF`
 
-```http
-POST /api/wallet/topup/init/
-Authorization: Bearer <jwt>
-Content-Type: application/json
-
-{
-  "currency": "GHS",
-  "amount_cents": 250000
-}
-```
-
-```http
-POST /api/checkout/
-Authorization: Bearer <jwt>
-Content-Type: application/json
-
-{
-  "payment_method": "WALLET",
-  "wallet_currency": "USD",
-  "use_wallet_amount_cents": 500000
-}
-```
-
-```http
-PATCH /api/vendor/orders/12/
-Authorization: Bearer <jwt_vendor>
-Content-Type: application/json
-
-{
-  "status": "PROCESSING"
-}
-```
+Fincra payload amounts are converted to major units with this exponent map.
 
 ## Webhook Testing Notes
 
-Use a standard tunneling tool to expose your local Django server and configure the generated HTTPS URL in your Fincra webhook settings. Ensure the callback path maps to:
-
-`/api/payments/webhooks/fincra/`
-
-Verify signature handling by sending requests with and without `x-signature`; requests without valid HMAC SHA512 signatures are rejected.
+- Endpoint: `/api/payments/webhooks/fincra/`
+- Sign each request with HMAC SHA512 using `FINCRA_WEBHOOK_SECRET`.
+- Duplicate events (same provider + `event_id`) are ignored.
+- Conversion success event flow:
+  1. mark `FxConversion` completed
+  2. post pending conversion ledger entries
+  3. post purchase entry
+  4. create vendor orders and decrement stock
+  5. mark order `PAID`
 
 ## Tests
 

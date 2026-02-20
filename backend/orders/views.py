@@ -44,6 +44,7 @@ class CartView(APIView):
                         "title": item.product.title,
                         "price_cents": item.product.price_cents,
                         "currency": item.product.currency,
+                        "qty_step": str(item.product.qty_step),
                     },
                 }
             )
@@ -90,7 +91,9 @@ class CheckoutView(APIView):
                 wallet_currency=serializer.validated_data.get("wallet_currency", "NGN"),
                 use_wallet_amount_cents=serializer.validated_data.get("use_wallet_amount_cents"),
             )
-            return Response(OrderSerializer(order).data)
+            payload = OrderSerializer(order).data
+            code = status.HTTP_200_OK if order.status == Order.OrderStatus.PAID else status.HTTP_202_ACCEPTED
+            return Response(payload, status=code)
 
         cart, _ = Cart.objects.get_or_create(user=request.user)
         total = cart_total_ngn_cents(cart)
@@ -104,7 +107,7 @@ class CheckoutView(APIView):
         )
         checkout_url = FincraClient().initialize_checkout(
             reference=f"order-{order.id}",
-            amount_cents=total,
+            amount_minor=total,
             currency="NGN",
             customer_email=request.user.email,
         )

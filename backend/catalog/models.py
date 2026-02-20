@@ -1,4 +1,5 @@
 from django.db import models
+
 from shops.models import Shop
 
 
@@ -23,9 +24,9 @@ class Product(models.Model):
     unit = models.CharField(max_length=20, choices=Unit.choices, default=Unit.PIECE)
     price_cents = models.IntegerField()
     currency = models.CharField(max_length=3, default="NGN")
-    stock_qty = models.IntegerField(default=0)
-    min_order_qty = models.IntegerField(default=1)
-    qty_step = models.IntegerField(default=1)
+    stock_qty = models.DecimalField(max_digits=12, decimal_places=3, default=0)
+    min_order_qty = models.DecimalField(max_digits=12, decimal_places=3, default=1)
+    qty_step = models.DecimalField(max_digits=12, decimal_places=3, default=1)
     image_urls = models.JSONField(default=list, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
