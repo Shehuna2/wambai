@@ -9,6 +9,8 @@ from .models import Cart, CartItem, Order, VendorOrder
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    qty = serializers.DecimalField(max_digits=12, decimal_places=3, coerce_to_string=True)
+
     class Meta:
         model = CartItem
         fields = ["id", "product", "qty"]

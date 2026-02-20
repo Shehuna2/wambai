@@ -77,6 +77,7 @@ class CartQtyValidationTests(TestCase):
 
         self.assertTrue(CartItemSerializer(data={"product": product.id, "qty": "1.0"}).is_valid())
         self.assertTrue(CartItemSerializer(data={"product": product.id, "qty": "1.5"}).is_valid())
+        self.assertTrue(CartItemSerializer(data={"product": product.id, "qty": 1.5}).is_valid())
         self.assertTrue(CartItemSerializer(data={"product": product.id, "qty": "2.0"}).is_valid())
         self.assertFalse(CartItemSerializer(data={"product": product.id, "qty": "1.2"}).is_valid())
 

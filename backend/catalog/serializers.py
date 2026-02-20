@@ -6,6 +6,10 @@ from .models import Product
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    stock_qty = serializers.DecimalField(max_digits=14, decimal_places=3, coerce_to_string=True)
+    min_order_qty = serializers.DecimalField(max_digits=12, decimal_places=3, coerce_to_string=True)
+    qty_step = serializers.DecimalField(max_digits=12, decimal_places=3, coerce_to_string=True)
+
     class Meta:
         model = Product
         fields = "__all__"

@@ -44,7 +44,12 @@ export const WalletScreen = () => {
         <Button title="Initialize top-up" onPress={async () => {
           try {
             setError('');
-            const { data } = await api.post('/wallet/topup/init/', { currency, amount_cents: Number(amount) });
+            const parsedAmount = Number.parseInt(amount, 10);
+            if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+              setError('Enter a valid whole-number minor-unit amount');
+              return;
+            }
+            const { data } = await api.post('/wallet/topup/init/', { currency, amount_cents: parsedAmount });
             setCheckoutUrl(data.checkout_url);
           } catch (err: any) {
             const message = err?.response?.data?.detail ?? 'currency not supported for checkout funding';
