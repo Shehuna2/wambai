@@ -1,7 +1,9 @@
 from decimal import Decimal
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 from shops.models import Shop
 
@@ -34,6 +36,15 @@ class Product(models.Model):
     qty_step = models.DecimalField(max_digits=12, decimal_places=3, default=1)
     image_urls = models.JSONField(default=list, blank=True)
     is_active = models.BooleanField(default=True)
+    is_approved = models.BooleanField(default=False)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_products",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -54,6 +65,11 @@ class Product(models.Model):
                 raise ValidationError("piece and bundle units require whole-number qty rules")
             if not self._is_whole_number(stock):
                 raise ValidationError("piece and bundle units require whole-number stock")
+
+    def set_approval(self, approved: bool, actor=None):
+        self.is_approved = approved
+        self.approved_at = timezone.now() if approved else None
+        self.approved_by = actor if approved else None
 
     def __str__(self):
         return self.title

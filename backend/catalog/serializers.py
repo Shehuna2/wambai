@@ -13,6 +13,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = "__all__"
+        read_only_fields = ["is_approved", "approved_at", "approved_by", "created_at", "updated_at"]
 
     def validate(self, attrs):
         min_qty = Decimal(attrs.get("min_order_qty", getattr(self.instance, "min_order_qty", 1)))

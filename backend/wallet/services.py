@@ -3,7 +3,7 @@ import uuid
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 
-from .models import LedgerEntry, Wallet, WalletBalance
+from .models import LedgerEntry, Wallet, WalletAdjustment, WalletBalance
 
 
 def get_or_create_wallet(user):
@@ -45,6 +45,45 @@ def post_ledger_entry(entry: LedgerEntry):
         locked.status = LedgerEntry.EntryStatus.POSTED
         locked.save(update_fields=["status", "updated_at"])
         return locked
+
+
+def apply_admin_adjustment(*, wallet, currency, amount_cents, reason, created_by):
+    if amount_cents == 0:
+        raise ValidationError("Adjustment amount cannot be zero")
+
+    with transaction.atomic():
+        balance, _ = WalletBalance.objects.select_for_update().get_or_create(
+            wallet=wallet,
+            currency=currency,
+            defaults={"available_cents": 0},
+        )
+        next_amount = balance.available_cents + amount_cents
+        if next_amount < 0:
+            raise ValidationError("Insufficient balance for debit adjustment")
+
+        adjustment = WalletAdjustment.objects.create(
+            wallet=wallet,
+            currency=currency,
+            amount_cents=amount_cents,
+            reason=reason,
+            created_by=created_by,
+        )
+        LedgerEntry.objects.create(
+            wallet=wallet,
+            currency=currency,
+            amount_cents=amount_cents,
+            type=LedgerEntry.EntryType.ADJUSTMENT,
+            status=LedgerEntry.EntryStatus.POSTED,
+            reference=adjustment.reference,
+            meta={
+                "reason": reason,
+                "created_by": created_by.id,
+                "adjustment_id": adjustment.id,
+            },
+        )
+        balance.available_cents = next_amount
+        balance.save(update_fields=["available_cents"])
+        return adjustment
 
 
 def create_pending_conversion_entries(wallet, ref, source_currency, source_minor, dest_currency, dest_minor):

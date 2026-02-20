@@ -9,22 +9,20 @@ from .serializers import ProductSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.filter(is_active=True)
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = [IsVendorProductOwnerOrReadOnly]
     filterset_fields = ["shop", "category"]
     search_fields = ["title", "description"]
 
     def get_queryset(self):
-        qs = super().get_queryset().select_related("shop")
-        if self.request.user.is_authenticated and self.request.user.is_vendor and self.action in {
-            "create",
-            "update",
-            "partial_update",
-            "destroy",
-        }:
-            return qs.filter(shop__owner=self.request.user)
-        return qs
+        qs = Product.objects.all().select_related("shop")
+        user = self.request.user
+        if user.is_authenticated and user.is_staff:
+            return qs
+        if user.is_authenticated and user.is_vendor:
+            return qs.filter(shop__owner=user)
+        return qs.filter(is_active=True, is_approved=True, shop__is_active=True, shop__is_approved=True)
 
     def perform_create(self, serializer):
         shop = serializer.validated_data.get("shop")

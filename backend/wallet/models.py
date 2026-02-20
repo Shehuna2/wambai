@@ -1,3 +1,5 @@
+import uuid
+
 from django.conf import settings
 from django.db import models
 
@@ -40,3 +42,18 @@ class LedgerEntry(models.Model):
     meta = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class WalletAdjustment(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="adjustments")
+    currency = models.CharField(max_length=3)
+    amount_cents = models.BigIntegerField(help_text="Signed minor units: positive credit, negative debit")
+    reason = models.TextField()
+    reference = models.CharField(max_length=128, unique=True, default="", blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="wallet_adjustments")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            self.reference = f"adj-{uuid.uuid4()}"
+        super().save(*args, **kwargs)
