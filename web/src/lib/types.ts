@@ -24,9 +24,11 @@ export type User = {
 
 export type Shop = {
   id: number;
+  owner: number;
   name: string;
   description: string;
   location: string;
+  logo_url: string;
   is_active: boolean;
   is_approved: boolean;
 };
@@ -35,16 +37,18 @@ export type Product = {
   id: number;
   shop: number;
   category: string;
+  unit: string;
   title: string;
   description: string;
-  unit: string;
   price_cents: number;
   currency: string;
   stock_qty: string;
   min_order_qty: string;
   qty_step: string;
+  image_urls: string[];
   is_active: boolean;
   is_approved: boolean;
+  created_at?: string;
 };
 
 export type CartItem = {
@@ -60,10 +64,7 @@ export type CartItem = {
 };
 
 export type CartResponse = {
-  cart: {
-    id: number;
-    items: { id: number; product: number; qty: string }[];
-  };
+  cart: { id: number; items: { id: number; product: number; qty: string }[] };
   grouped_by_shop: Record<string, { shop: { id: number; name: string; location: string }; items: CartItem[] }>;
 };
 
@@ -86,4 +87,23 @@ export type WalletResponse = {
     reference: string;
     created_at: string;
   }>;
+};
+
+export type VendorOrderItem = {
+  id: number;
+  product_snapshot: { title?: string; unit?: string; [k: string]: unknown };
+  qty: string;
+  line_total_ngn_cents: number;
+};
+
+export type VendorOrder = {
+  id: number;
+  order: number;
+  shop: number;
+  subtotal_ngn_cents: number;
+  status: "NEW" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  shop_name?: string;
+  order_created_at?: string;
+  buyer_email?: string;
+  items?: VendorOrderItem[];
 };

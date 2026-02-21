@@ -1,6 +1,6 @@
 # Wambai Web Frontend
 
-Next.js (App Router) frontend for buyer-first marketplace flows.
+Next.js (App Router) frontend for buyer and vendor marketplace flows.
 
 ## Setup
 
@@ -21,6 +21,20 @@ Next.js (App Router) frontend for buyer-first marketplace flows.
 ## Environment
 
 - `NEXT_PUBLIC_API_BASE` defaults to Django API base, e.g. `http://127.0.0.1:8000/api`.
+
+## Routes
+
+Buyer:
+- `/`, `/login`, `/register`, `/shops`, `/shops/[id]`, `/products/[id]`, `/cart`, `/wallet`
+
+Vendor:
+- `/vendor`
+- `/vendor/shop`
+- `/vendor/products`
+- `/vendor/products/new`
+- `/vendor/products/[id]`
+- `/vendor/orders`
+- `/vendor/orders/[id]`
 
 ## Common issues
 

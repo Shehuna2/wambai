@@ -28,7 +28,7 @@ export default function Header() {
             className="rounded border p-1"
             value={mode}
             onChange={(e) => setMode(e.target.value as "BUYER" | "VENDOR")}
-            disabled={!user?.is_vendor && mode === "BUYER" ? false : !user?.is_vendor}
+            disabled={!user?.is_vendor}
           >
             <option value="BUYER">Buyer</option>
             <option value="VENDOR" disabled={!user?.is_vendor}>
