@@ -26,6 +26,7 @@ export type Shop = {
   id: number;
   owner: number;
   name: string;
+  slug: string;
   description: string;
   logo_url: string;
   location: string;
@@ -47,7 +48,6 @@ export type Product = {
   stock_qty: string;
   min_order_qty: string;
   qty_step: string;
-  image_urls: string[];
   is_active: boolean;
   is_approved: boolean;
   created_at: string;
@@ -89,26 +89,4 @@ export type Order = {
   payment_method: string;
   total_ngn_cents: number;
   created_at: string;
-};
-
-export type VendorOrderItem = {
-  id: number;
-  product_snapshot: {
-    title?: string;
-    unit?: string;
-    [key: string]: unknown;
-  };
-  qty: string;
-  line_total_ngn_cents: number;
-};
-
-export type VendorOrder = {
-  id: number;
-  order: number;
-  shop: number;
-  shop_name: string;
-  subtotal_ngn_cents: number;
-  status: "NEW" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-  order_created_at?: string;
-  items: VendorOrderItem[];
 };
