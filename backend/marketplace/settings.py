@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "django_filters",
+    "corsheaders",
     "accounts",
     "shops",
     "catalog",
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -105,3 +107,13 @@ FINCRA_PUBLIC_KEY = os.getenv("FINCRA_PUBLIC_KEY", "")
 FINCRA_WEBHOOK_SECRET = os.getenv("FINCRA_WEBHOOK_SECRET", "")
 FINCRA_REDIRECT_URL = os.getenv("FINCRA_REDIRECT_URL", "https://example.com/redirect")
 FINCRA_WEBHOOK_PATH = os.getenv("FINCRA_WEBHOOK_PATH", "/api/payments/webhooks/fincra/")
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+from corsheaders.defaults import default_headers
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+]
