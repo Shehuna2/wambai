@@ -4,3 +4,9 @@ backend/.venv/
 node_modules/
 .DS_Store
 web/.env.local
+# local dev artifacts
+backend/db.sqlite3
+mobile/.idea/
+# local dev artifacts
+backend/db.sqlite3
+mobile/.idea/
