@@ -1,202 +1,70 @@
-import type { CartResponse, Order, Product, Shop, User, VendorOrder } from "./types";
+import type { Product, Shop, User, VendorOrder } from "./types";
 
-type RequestOptions = RequestInit & { auth?: boolean };
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000/api";
 
-type ProductPayload = {
+type ReqOpts = RequestInit & { auth?: boolean; form?: boolean };
+
+function getToken() {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("access_token");
+}
+
+async function api<T>(path: string, opts: ReqOpts = {}): Promise<T> {
+  const headers = new Headers(opts.headers ?? {});
+  if (!opts.form) headers.set("Content-Type", "application/json");
+  if (opts.auth !== false) {
+    const token = getToken();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
+  const txt = await res.text();
+  const data = txt ? JSON.parse(txt) : {};
+  if (!res.ok) {
+    const detail = data?.detail ?? data?.non_field_errors?.[0] ?? Object.values(data)[0] ?? "Request failed";
+    throw new Error(String(Array.isArray(detail) ? detail[0] : detail));
+  }
+  return data as T;
+}
+
+export const login = (payload: { email: string; password: string }) => api<{ access: string; refresh: string }>("/auth/login/", { method: "POST", auth: false, body: JSON.stringify(payload) });
+export const me = () => api<User>("/auth/me/");
+export const listShops = () => api<Shop[]>("/shops/");
+export const getShop = (id: string) => api<Shop>(`/shops/${id}/`);
+export const listProducts = (shop?: string) => api<Product[]>(`/products/${shop ? `?shop=${shop}` : ""}`);
+
+export const getMyShop = () => api<Shop>("/vendor/shop/");
+export const createMyShop = (payload: Partial<Shop>) => api<Shop>("/vendor/shop/", { method: "POST", body: JSON.stringify(payload) });
+export const updateMyShop = (payload: Partial<Shop>) => api<Shop>("/vendor/shop/", { method: "PATCH", body: JSON.stringify(payload) });
+export const listMyProducts = () => api<Product[]>("/vendor/products/");
+export const createProduct = (payload: {
   shop: number;
   title: string;
   description: string;
   category: string;
   unit: string;
   price_minor: number;
-  currency?: string;
+  currency: string;
   stock_qty: string;
   min_order_qty: string;
   qty_step: string;
   image_urls: string[];
-  is_active?: boolean;
-};
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000/api";
-
-function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem("access_token");
-}
-
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const headers = new Headers(options.headers ?? {});
-  headers.set("Content-Type", "application/json");
-
-  if (options.auth !== false) {
-    const token = getAccessToken();
-    if (token) headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  const bodyText = await response.text();
-  const data = bodyText ? JSON.parse(bodyText) : null;
-
-  if (!response.ok) {
-    let detail = data?.detail ?? data?.non_field_errors?.[0];
-    if (!detail && data && typeof data === "object") {
-      const firstValue = Object.values(data)[0];
-      detail = Array.isArray(firstValue) ? firstValue[0] : firstValue;
-    }
-    throw new Error(String(detail ?? "Request failed"));
-  }
-
-  return data as T;
-}
-
-function toBackendProductPayload(payload: ProductPayload) {
-  return {
-    ...payload,
-    currency: payload.currency ?? "NGN",
-    price_cents: payload.price_minor,
-  };
-}
-
-export function register(payload: { email: string; phone?: string; password: string; is_vendor?: boolean }) {
-  return request<{ access: string; refresh: string; user: User }>("/auth/register/", {
-    method: "POST",
-    auth: false,
-    body: JSON.stringify(payload),
-  });
-}
-
-export function login(payload: { email: string; password: string }) {
-  return request<{ access: string; refresh: string }>("/auth/login/", {
-    method: "POST",
-    auth: false,
-    body: JSON.stringify(payload),
-  });
-}
-
-export function me() {
-  return request<User>("/auth/me/");
-}
-
-export function listShops() {
-  return request<Shop[]>("/shops/");
-}
-
-export function getShop(id: string | number) {
-  return request<Shop>(`/shops/${id}/`);
-}
-
-export function listProducts(params?: { shop?: string; category?: string; q?: string }) {
-  const search = new URLSearchParams();
-  if (params?.shop) search.set("shop", params.shop);
-  if (params?.category) search.set("category", params.category);
-  if (params?.q) search.set("search", params.q);
-  const qs = search.toString();
-  return request<Product[]>(`/products/${qs ? `?${qs}` : ""}`);
-}
-
-export function getProduct(id: string | number) {
-  return request<Product>(`/products/${id}/`);
-}
-
-export function getCart() {
-  return request<CartResponse>("/cart/");
-}
-
-export function addToCart(payload: { product_id: number; qty: string }) {
-  return request("/cart/items/", {
-    method: "POST",
-    body: JSON.stringify({ product: payload.product_id, qty: payload.qty }),
-  });
-}
-
-export function updateCartItem(id: number, payload: { qty: string }) {
-  return request(`/cart/items/${id}/`, {
+  is_active: boolean;
+}) => api<Product>("/vendor/products/", { method: "POST", body: JSON.stringify({ ...payload, price_cents: payload.price_minor }) });
+export const getMyProduct = (id: string) => api<Product>(`/vendor/products/${id}/`);
+export const updateMyProduct = (id: string, payload: Partial<{ title: string; description: string; category: string; unit: string; price_minor: number; currency: string; stock_qty: string; min_order_qty: string; qty_step: string; image_urls: string[]; is_active: boolean }>) =>
+  api<Product>(`/vendor/products/${id}/`, {
     method: "PATCH",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, ...(payload.price_minor !== undefined ? { price_cents: payload.price_minor } : {}) }),
   });
-}
 
-export function deleteCartItem(id: number) {
-  return request(`/cart/items/${id}/`, {
-    method: "DELETE",
-  });
-}
+export const listVendorOrders = () => api<VendorOrder[]>("/vendor/orders/");
+export const getVendorOrder = (id: string) => api<VendorOrder>(`/vendor/orders/${id}/`);
+export const updateVendorOrderStatus = (id: string, status: VendorOrder["status"]) => api<VendorOrder>(`/vendor/orders/${id}/`, { method: "PATCH", body: JSON.stringify({ status }) });
 
-export function getWallet() {
-  return request<{ balances: Array<{ currency: string; available_cents: number }>; recent_ledger: unknown[] }>("/wallet/");
-}
-
-export function topupInit(payload: { currency: string; amount_minor: number }) {
-  return request<{ reference: string; checkout_url: string }>("/wallet/topup/init/", {
-    method: "POST",
-    body: JSON.stringify({ currency: payload.currency, amount_cents: payload.amount_minor }),
-  });
-}
-
-export function checkout(payload: { payment_method: string; wallet_currency?: string }) {
-  return request<Order | { order_id: number; checkout_url: string }>("/checkout/", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-export async function getMyShop() {
-  const shops = await request<Shop[]>("/shops/");
-  return shops[0] ?? null;
-}
-
-export async function upsertMyShop(payload: { name: string; description: string; location: string; logo_url: string }) {
-  const existing = await getMyShop();
-  if (existing) {
-    return request<Shop>(`/shops/${existing.id}/`, {
-      method: "PATCH",
-      body: JSON.stringify(payload),
-    });
-  }
-
-  return request<Shop>("/shops/", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-}
-
-export function listMyProducts() {
-  return request<Product[]>("/products/");
-}
-
-export function createProduct(payload: ProductPayload) {
-  return request<Product>("/products/", {
-    method: "POST",
-    body: JSON.stringify(toBackendProductPayload(payload)),
-  });
-}
-
-export function getMyProduct(id: number | string) {
-  return request<Product>(`/products/${id}/`);
-}
-
-export function updateMyProduct(id: number | string, payload: Partial<ProductPayload>) {
-  return request<Product>(`/products/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      ...payload,
-      ...(payload.price_minor !== undefined ? { price_cents: payload.price_minor } : {}),
-      currency: payload.currency ?? "NGN",
-    }),
-  });
-}
-
-export function listVendorOrders() {
-  return request<VendorOrder[]>("/vendor/orders/");
-}
-
-export function getVendorOrder(id: number | string) {
-  return request<VendorOrder>(`/vendor/orders/${id}/`);
-}
-
-export function updateVendorOrderStatus(id: number | string, status: VendorOrder["status"]) {
-  return request<VendorOrder>(`/vendor/orders/${id}/`, {
-    method: "PATCH",
-    body: JSON.stringify({ status }),
-  });
+export async function uploadImages(files: File[]): Promise<string[]> {
+  const form = new FormData();
+  for (const file of files) form.append("files", file);
+  const data = await api<{ urls: string[] }>("/uploads/images/", { method: "POST", body: form, form: true });
+  return data.urls;
 }

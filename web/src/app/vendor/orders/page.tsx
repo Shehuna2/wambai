@@ -8,55 +8,17 @@ import type { VendorOrder } from "@/lib/types";
 
 export default function VendorOrdersPage() {
   const [orders, setOrders] = useState<VendorOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   useEffect(() => {
-    listVendorOrders()
-      .then((data) => {
-        setOrders(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    listVendorOrders().then(setOrders).catch(() => setOrders([]));
   }, []);
 
-  if (loading) return <p>Loading orders...</p>;
-
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">Vendor Orders</h1>
-      {error ? <p className="text-red-600">{error}</p> : null}
-      <div className="overflow-auto rounded border bg-white">
-        <table className="min-w-full text-sm">
-          <thead className="bg-slate-100">
-            <tr>
-              <th className="p-2 text-left">Order ID</th>
-              <th className="p-2 text-left">Shop</th>
-              <th className="p-2 text-left">Subtotal (NGN)</th>
-              <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-left">Created</th>
-              <th className="p-2 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id} className="border-t">
-                <td className="p-2">#{order.order}</td>
-                <td className="p-2">{order.shop_name || order.shop}</td>
-                <td className="p-2">{order.subtotal_ngn_cents}</td>
-                <td className="p-2">{order.status}</td>
-                <td className="p-2">{order.order_created_at ? new Date(order.order_created_at).toLocaleString() : "-"}</td>
-                <td className="p-2">
-                  <Link href={`/vendor/orders/${order.id}`}>View</Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="overflow-auto rounded border bg-white">
+      <table className="min-w-full text-sm">
+        <thead><tr className="bg-slate-100"><th className="p-2 text-left">Order</th><th className="p-2">Shop</th><th className="p-2">Subtotal</th><th className="p-2">Status</th><th className="p-2">Action</th></tr></thead>
+        <tbody>{orders.map((o) => <tr key={o.id} className="border-t"><td className="p-2">#{o.order}</td><td className="p-2">{o.shop_name}</td><td className="p-2">{o.subtotal_ngn_cents}</td><td className="p-2">{o.status}</td><td className="p-2"><Link href={`/vendor/orders/${o.id}`}>View</Link></td></tr>)}</tbody>
+      </table>
     </div>
   );
 }

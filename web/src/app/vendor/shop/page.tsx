@@ -2,68 +2,55 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
-import { getMyShop, upsertMyShop } from "@/lib/api";
+import { createMyShop, getMyShop, updateMyShop } from "@/lib/api";
 
 export default function VendorShopPage() {
+  const [exists, setExists] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
+  const [isActive, setIsActive] = useState(true);
   const [status, setStatus] = useState("Not created");
-  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    getMyShop()
-      .then((shop) => {
-        if (!shop) {
-          setLoading(false);
-          return;
-        }
-        setName(shop.name);
-        setDescription(shop.description);
-        setLocation(shop.location);
-        setLogoUrl(shop.logo_url);
-        setStatus(shop.is_approved ? "Approved" : "Pending approval");
-        setLoading(false);
-      })
-      .catch((err) => {
-        setMessage(err.message);
-        setLoading(false);
-      });
+    getMyShop().then((s) => {
+      setExists(true);
+      setName(s.name);
+      setDescription(s.description);
+      setLocation(s.location);
+      setLogoUrl(s.logo_url);
+      setIsActive(s.is_active);
+      setStatus(s.is_approved ? "Approved" : "Pending approval");
+    }).catch(() => setExists(false));
   }, []);
 
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
-    setMessage("");
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const payload = { name, description, location, logo_url: logoUrl, is_active: isActive };
     try {
-      const shop = await upsertMyShop({ name, description, location, logo_url: logoUrl });
+      const shop = exists ? await updateMyShop(payload) : await createMyShop(payload);
+      setExists(true);
       setStatus(shop.is_approved ? "Approved" : "Pending approval");
       setMessage("Shop saved");
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Failed to save shop");
+      setMessage(err instanceof Error ? err.message : "Failed");
     }
   };
 
-  if (loading) return <p>Loading shop...</p>;
-
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold">My Shop</h1>
-      <span className={`inline-block rounded px-2 py-1 text-xs ${status === "Approved" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-        {status}
-      </span>
-
-      <form onSubmit={onSubmit} className="space-y-3 rounded border bg-white p-4">
-        <input className="w-full rounded border p-2" placeholder="Shop name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <textarea className="w-full rounded border p-2" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <input className="w-full rounded border p-2" placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
-        <input className="w-full rounded border p-2" placeholder="Logo URL" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} />
-        <button className="rounded bg-blue-700 px-4 py-2 text-white" type="submit">
-          Save shop
-        </button>
+    <div className="space-y-3">
+      <p className="text-sm">Status: {status}</p>
+      <form onSubmit={submit} className="space-y-2 rounded border bg-white p-4">
+        <input className="w-full rounded border p-2" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" required />
+        <textarea className="w-full rounded border p-2" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description" />
+        <input className="w-full rounded border p-2" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location" />
+        <input className="w-full rounded border p-2" value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="Logo URL" />
+        <label className="flex gap-2 text-sm"><input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} /> Shop active</label>
+        <button className="rounded bg-blue-700 px-4 py-2 text-white" type="submit">Save Shop</button>
       </form>
-      {message ? <p className="text-sm">{message}</p> : null}
+      {message ? <p>{message}</p> : null}
     </div>
   );
 }

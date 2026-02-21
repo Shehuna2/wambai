@@ -1,47 +1,26 @@
-# Wambai Web (Next.js)
+# Wambai Web
 
-Buyer-first web frontend built with Next.js App Router, TypeScript, Tailwind, and Zustand.
-
-## Install
+## Setup
 
 ```bash
 cd web
 npm install
-```
-
-## Environment setup
-
-```bash
 cp .env.local.example .env.local
+npm run dev
 ```
 
-Default:
+Environment:
 
 ```env
 NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000/api
 ```
 
-## Run development server
-
-```bash
-npm run dev
-```
-
-Open http://localhost:3000.
-
-## Common issues
-
-- **401 / auth errors**: confirm you are logged in and backend is running.
-- **CORS errors**: ensure backend has `django-cors-headers` and allows `http://localhost:3000` / `http://127.0.0.1:3000`.
-- **Wrong API base**: verify `NEXT_PUBLIC_API_BASE` points to backend `/api` root.
-
-
 ## Vendor routes
 
-- `/vendor` dashboard summary
-- `/vendor/shop` create/update vendor shop
-- `/vendor/products` list vendor products
-- `/vendor/products/new` create product
-- `/vendor/products/[id]` edit product
-- `/vendor/orders` list vendor orders
-- `/vendor/orders/[id]` view order + update status
+- `/vendor`
+- `/vendor/shop`
+- `/vendor/products`
+- `/vendor/products/new`
+- `/vendor/products/[id]`
+- `/vendor/orders`
+- `/vendor/orders/[id]`
