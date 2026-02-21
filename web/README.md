@@ -34,3 +34,14 @@ Open http://localhost:3000.
 - **401 / auth errors**: confirm you are logged in and backend is running.
 - **CORS errors**: ensure backend has `django-cors-headers` and allows `http://localhost:3000` / `http://127.0.0.1:3000`.
 - **Wrong API base**: verify `NEXT_PUBLIC_API_BASE` points to backend `/api` root.
+
+
+## Vendor routes
+
+- `/vendor` dashboard summary
+- `/vendor/shop` create/update vendor shop
+- `/vendor/products` list vendor products
+- `/vendor/products/new` create product
+- `/vendor/products/[id]` edit product
+- `/vendor/orders` list vendor orders
+- `/vendor/orders/[id]` view order + update status

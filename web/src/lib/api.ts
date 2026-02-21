@@ -1,6 +1,21 @@
-import type { CartResponse, Order, Product, Shop, User } from "./types";
+import type { CartResponse, Order, Product, Shop, User, VendorOrder } from "./types";
 
 type RequestOptions = RequestInit & { auth?: boolean };
+
+type ProductPayload = {
+  shop: number;
+  title: string;
+  description: string;
+  category: string;
+  unit: string;
+  price_minor: number;
+  currency?: string;
+  stock_qty: string;
+  min_order_qty: string;
+  qty_step: string;
+  image_urls: string[];
+  is_active?: boolean;
+};
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000/api";
 
@@ -15,25 +30,31 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   if (options.auth !== false) {
     const token = getAccessToken();
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
+    if (token) headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers,
-  });
-
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
   const bodyText = await response.text();
   const data = bodyText ? JSON.parse(bodyText) : null;
 
   if (!response.ok) {
-    const detail = data?.detail ?? data?.non_field_errors?.[0] ?? "Request failed";
-    throw new Error(detail);
+    let detail = data?.detail ?? data?.non_field_errors?.[0];
+    if (!detail && data && typeof data === "object") {
+      const firstValue = Object.values(data)[0];
+      detail = Array.isArray(firstValue) ? firstValue[0] : firstValue;
+    }
+    throw new Error(String(detail ?? "Request failed"));
   }
 
   return data as T;
+}
+
+function toBackendProductPayload(payload: ProductPayload) {
+  return {
+    ...payload,
+    currency: payload.currency ?? "NGN",
+    price_cents: payload.price_minor,
+  };
 }
 
 export function register(payload: { email: string; phone?: string; password: string; is_vendor?: boolean }) {
@@ -116,5 +137,66 @@ export function checkout(payload: { payment_method: string; wallet_currency?: st
   return request<Order | { order_id: number; checkout_url: string }>("/checkout/", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function getMyShop() {
+  const shops = await request<Shop[]>("/shops/");
+  return shops[0] ?? null;
+}
+
+export async function upsertMyShop(payload: { name: string; description: string; location: string; logo_url: string }) {
+  const existing = await getMyShop();
+  if (existing) {
+    return request<Shop>(`/shops/${existing.id}/`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  }
+
+  return request<Shop>("/shops/", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export function listMyProducts() {
+  return request<Product[]>("/products/");
+}
+
+export function createProduct(payload: ProductPayload) {
+  return request<Product>("/products/", {
+    method: "POST",
+    body: JSON.stringify(toBackendProductPayload(payload)),
+  });
+}
+
+export function getMyProduct(id: number | string) {
+  return request<Product>(`/products/${id}/`);
+}
+
+export function updateMyProduct(id: number | string, payload: Partial<ProductPayload>) {
+  return request<Product>(`/products/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      ...payload,
+      ...(payload.price_minor !== undefined ? { price_cents: payload.price_minor } : {}),
+      currency: payload.currency ?? "NGN",
+    }),
+  });
+}
+
+export function listVendorOrders() {
+  return request<VendorOrder[]>("/vendor/orders/");
+}
+
+export function getVendorOrder(id: number | string) {
+  return request<VendorOrder>(`/vendor/orders/${id}/`);
+}
+
+export function updateVendorOrderStatus(id: number | string, status: VendorOrder["status"]) {
+  return request<VendorOrder>(`/vendor/orders/${id}/`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
   });
 }
