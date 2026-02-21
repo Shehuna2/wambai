@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "wallet",
     "orders",
     "payments",
+    "uploads",
 ]
 
 MIDDLEWARE = [
@@ -105,3 +106,6 @@ FINCRA_PUBLIC_KEY = os.getenv("FINCRA_PUBLIC_KEY", "")
 FINCRA_WEBHOOK_SECRET = os.getenv("FINCRA_WEBHOOK_SECRET", "")
 FINCRA_REDIRECT_URL = os.getenv("FINCRA_REDIRECT_URL", "https://example.com/redirect")
 FINCRA_WEBHOOK_PATH = os.getenv("FINCRA_WEBHOOK_PATH", "/api/payments/webhooks/fincra/")
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
