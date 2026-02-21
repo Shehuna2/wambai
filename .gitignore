@@ -3,4 +3,4 @@ __pycache__/
 backend/.venv/
 node_modules/
 .DS_Store
-web/.env.local
+TXT && git add -A && git commit --amend --no-edit

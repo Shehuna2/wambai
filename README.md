@@ -4,7 +4,6 @@ Monorepo structure:
 
 - `backend/` Django + DRF API
 - `mobile/` Expo React Native (TypeScript)
-- `web/` Next.js buyer-first frontend
 
 ## Backend quick start
 
@@ -31,19 +30,4 @@ Set API base URL in Expo env if needed:
 
 ```bash
 EXPO_PUBLIC_API_URL=http://<host>:8000/api
-```
-
-## Web quick start
-
-```bash
-cd web
-npm install
-cp .env.local.example .env.local
-npm run dev
-```
-
-Set API base URL for web app:
-
-```bash
-NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000/api
 ```
