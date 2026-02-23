@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from catalog.models import Product
 
-from .models import Cart, CartItem, Order, VendorOrder
+from .models import Cart, CartItem, Order, OrderItem, VendorOrder
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -54,8 +54,31 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class OrderItemMiniSerializer(serializers.ModelSerializer):
+    qty = serializers.DecimalField(max_digits=12, decimal_places=3, coerce_to_string=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ["id", "product_snapshot", "qty", "line_total_ngn_cents"]
+
+
 class VendorOrderSerializer(serializers.ModelSerializer):
+    shop_name = serializers.CharField(source="shop.name", read_only=True)
+    order_created_at = serializers.DateTimeField(source="order.created_at", read_only=True)
+    buyer_email = serializers.EmailField(source="order.buyer.email", read_only=True)
+    items = OrderItemMiniSerializer(many=True, read_only=True)
+
     class Meta:
         model = VendorOrder
-        fields = "__all__"
-        read_only_fields = ["order", "shop", "subtotal_ngn_cents"]
+        fields = [
+            "id",
+            "order",
+            "shop",
+            "shop_name",
+            "subtotal_ngn_cents",
+            "status",
+            "order_created_at",
+            "buyer_email",
+            "items",
+        ]
+        read_only_fields = ["order", "shop", "subtotal_ngn_cents", "shop_name", "order_created_at", "buyer_email", "items"]

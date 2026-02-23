@@ -31,3 +31,15 @@ class ProductSerializer(serializers.ModelSerializer):
             if stock_qty != stock_qty.quantize(Decimal("1")):
                 raise serializers.ValidationError("piece and bundle units require whole-number stock")
         return attrs
+
+
+class VendorProductSerializer(ProductSerializer):
+    class Meta(ProductSerializer.Meta):
+        read_only_fields = [
+            "shop",
+            "is_approved",
+            "approved_at",
+            "approved_by",
+            "created_at",
+            "updated_at",
+        ]
