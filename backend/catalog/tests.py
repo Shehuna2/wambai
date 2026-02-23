@@ -97,3 +97,31 @@ class ProductApprovalVisibilityTests(TestCase):
         response = self.client.get("/api/products/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
+
+
+class VendorProductCreateTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.vendor = get_user_model().objects.create_user(email="vendor-create@example.com", password="pass", is_vendor=True)
+        self.shop = Shop.objects.create(owner=self.vendor, name="Vendor Create Shop", is_active=True, is_approved=True)
+
+    def test_vendor_can_create_product_without_shop_field(self):
+        self.client.force_authenticate(user=self.vendor)
+        payload = {
+            "title": "Auto Shop Product",
+            "description": "Desc",
+            "category": "fabric",
+            "unit": "yard",
+            "price_cents": 2500,
+            "currency": "NGN",
+            "stock_qty": "12.500",
+            "min_order_qty": "1.000",
+            "qty_step": "0.500",
+            "image_urls": [],
+            "is_active": True,
+        }
+        response = self.client.post("/api/vendor/products/", payload, format="json")
+        self.assertEqual(response.status_code, 201, response.data)
+        product = Product.objects.get(id=response.data["id"])
+        self.assertEqual(product.shop_id, self.shop.id)
+

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getMyShop, listMyProducts } from "@/lib/api";
@@ -53,7 +54,7 @@ export default function VendorProductsPage() {
             <tbody>
               {products.map((p) => (
                 <tr key={p.id} className="border-t">
-                  <td className="p-2">{p.image_urls?.[0] ? <img src={p.image_urls[0]} alt={p.title} className="h-10 w-10 rounded object-cover" /> : "-"}</td>
+                  <td className="p-2">{p.image_urls?.[0] ? <Image src={p.image_urls[0]} alt={p.title} width={40} height={40} className="h-10 w-10 rounded object-cover" unoptimized /> : "-"}</td>
                   <td className="p-2">{p.title}</td>
                   <td>{p.category}</td>
                   <td>{p.unit}</td>

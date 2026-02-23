@@ -5,7 +5,7 @@ from shops.models import Shop
 
 from .models import Product
 from .permissions import IsVendorProductOwnerOrReadOnly
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, VendorProductSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -32,7 +32,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 class VendorProductListCreateView(generics.ListCreateAPIView):
-    serializer_class = ProductSerializer
+    serializer_class = VendorProductSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def _check_vendor(self):
@@ -52,7 +52,7 @@ class VendorProductListCreateView(generics.ListCreateAPIView):
 
 
 class VendorProductDetailView(generics.RetrieveUpdateAPIView):
-    serializer_class = ProductSerializer
+    serializer_class = VendorProductSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):

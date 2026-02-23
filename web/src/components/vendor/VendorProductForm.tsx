@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { Product } from "@/lib/types";
 
 type ProductFormState = {
@@ -95,7 +96,7 @@ export default function VendorProductForm({
         <div className="grid grid-cols-4 gap-2">
           {value.image_urls.map((url) => (
             <div key={url} className="rounded border p-1">
-              <img src={url} alt="Product" className="h-24 w-full rounded object-cover" />
+              <Image src={url} alt="Product" width={320} height={192} className="h-24 w-full rounded object-cover" unoptimized />
               <button
                 type="button"
                 className="mt-1 w-full rounded border px-2 py-1 text-xs"
