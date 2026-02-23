@@ -127,7 +127,7 @@ class VendorOrdersView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return VendorOrder.objects.filter(shop__owner=self.request.user).order_by("-id")
+        return VendorOrder.objects.filter(shop__owner=self.request.user).select_related("shop", "order", "order__buyer").prefetch_related("items").order_by("-id")
 
 
 class VendorOrderViewSet(viewsets.ModelViewSet):
@@ -136,4 +136,4 @@ class VendorOrderViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "patch", "head", "options"]
 
     def get_queryset(self):
-        return VendorOrder.objects.filter(shop__owner=self.request.user)
+        return VendorOrder.objects.filter(shop__owner=self.request.user).select_related("shop", "order", "order__buyer").prefetch_related("items")
