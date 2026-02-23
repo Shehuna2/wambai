@@ -2,14 +2,29 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createProduct } from "@/lib/api";
+import { createProduct, uploadImages } from "@/lib/api";
 import VendorProductForm, { toFormState } from "@/components/vendor/VendorProductForm";
 
 export default function NewVendorProductPage() {
   const router = useRouter();
   const [form, setForm] = useState(toFormState());
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+
+  async function handleUpload(files: File[]) {
+    if (!files.length) return;
+    setUploading(true);
+    setError("");
+    try {
+      const urls = await uploadImages(files);
+      setForm((prev) => ({ ...prev, image_urls: [...prev.image_urls, ...urls] }));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function submit() {
     setLoading(true);
@@ -25,7 +40,7 @@ export default function NewVendorProductPage() {
         stock_qty: form.stock_qty,
         min_order_qty: form.min_order_qty,
         qty_step: form.qty_step,
-        image_urls: form.image_urls.split(",").map((x) => x.trim()).filter(Boolean),
+        image_urls: form.image_urls,
         is_active: form.is_active,
       });
       router.push("/vendor/products");
@@ -40,7 +55,15 @@ export default function NewVendorProductPage() {
     <div className="space-y-3">
       <h1 className="text-xl font-semibold">New product</h1>
       {error && <p className="text-red-600">{error}</p>}
-      <VendorProductForm value={form} onChange={setForm} onSubmit={submit} loading={loading} actionLabel="Create product" />
+      <VendorProductForm
+        value={form}
+        onChange={setForm}
+        onSubmit={submit}
+        onUpload={handleUpload}
+        loading={loading}
+        uploading={uploading}
+        actionLabel="Create product"
+      />
     </div>
   );
 }

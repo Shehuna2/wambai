@@ -1,18 +1,36 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getMyProduct, updateMyProduct } from "@/lib/api";
+import { getMyProduct, updateMyProduct, uploadImages } from "@/lib/api";
 import VendorProductForm, { toFormState } from "@/components/vendor/VendorProductForm";
 
 export default function EditVendorProductPage({ params }: { params: { id: string } }) {
   const [form, setForm] = useState(toFormState());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getMyProduct(params.id).then((p) => setForm(toFormState(p))).catch((e) => setError((e as Error).message)).finally(() => setLoading(false));
+    getMyProduct(params.id)
+      .then((p) => setForm(toFormState(p)))
+      .catch((e) => setError((e as Error).message))
+      .finally(() => setLoading(false));
   }, [params.id]);
+
+  async function handleUpload(files: File[]) {
+    if (!files.length) return;
+    setUploading(true);
+    setError("");
+    try {
+      const urls = await uploadImages(files);
+      setForm((prev) => ({ ...prev, image_urls: [...prev.image_urls, ...urls] }));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function submit() {
     setSaving(true);
@@ -28,7 +46,7 @@ export default function EditVendorProductPage({ params }: { params: { id: string
         stock_qty: form.stock_qty,
         min_order_qty: form.min_order_qty,
         qty_step: form.qty_step,
-        image_urls: form.image_urls.split(",").map((x) => x.trim()).filter(Boolean),
+        image_urls: form.image_urls,
         is_active: form.is_active,
       });
     } catch (e) {
@@ -44,7 +62,15 @@ export default function EditVendorProductPage({ params }: { params: { id: string
     <div className="space-y-3">
       <h1 className="text-xl font-semibold">Edit product</h1>
       {error && <p className="text-red-600">{error}</p>}
-      <VendorProductForm value={form} onChange={setForm} onSubmit={submit} loading={saving} actionLabel="Save changes" />
+      <VendorProductForm
+        value={form}
+        onChange={setForm}
+        onSubmit={submit}
+        onUpload={handleUpload}
+        loading={saving}
+        uploading={uploading}
+        actionLabel="Save changes"
+      />
     </div>
   );
 }

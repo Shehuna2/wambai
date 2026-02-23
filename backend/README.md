@@ -58,3 +58,12 @@ Fincra payload amounts are converted to major units with this exponent map.
 ```bash
 python manage.py test
 ```
+
+## Media Uploads (dev)
+
+- Uploaded images are stored locally under `backend/media/uploads/<user_id>/...`.
+- Media is served in debug mode from `MEDIA_URL=/media/`.
+- Upload endpoint: `POST /api/uploads/images/` (multipart field name `files`, vendor auth required).
+- Allowed formats: JPG/PNG/WEBP, max 5MB each.
+
+Production note: switch to S3-compatible object storage (or equivalent) instead of local filesystem media.

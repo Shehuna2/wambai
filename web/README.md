@@ -41,3 +41,9 @@ Vendor:
 - **CORS errors**: confirm backend allows `http://localhost:3000` and `http://127.0.0.1:3000`.
 - **401 Unauthorized**: login again to refresh JWT in local storage.
 - **Cannot connect to backend**: verify Django server is running and API base URL is correct.
+
+
+## Image uploads
+
+- Vendor product forms upload images via `POST /api/uploads/images/` and store returned URLs in `image_urls`.
+- Ensure backend is running with media enabled in debug mode for local previews.
