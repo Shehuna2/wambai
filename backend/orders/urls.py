@@ -4,6 +4,7 @@ from .views import (
     CartItemUpdateDeleteView,
     CartView,
     CheckoutView,
+    OrderDetailView,
     OrdersView,
     VendorOrdersView,
     VendorOrderViewSet,
@@ -17,6 +18,7 @@ urlpatterns = [
     path("cart/items/<int:pk>/", CartItemUpdateDeleteView.as_view()),
     path("checkout/", CheckoutView.as_view()),
     path("orders/", OrdersView.as_view()),
+    path("orders/<int:pk>/", OrderDetailView.as_view()),
     path("vendor/orders/", VendorOrdersView.as_view()),
     path("vendor/orders/<int:pk>/", vendor_order_detail),
 ]

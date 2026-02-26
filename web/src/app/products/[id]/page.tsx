@@ -30,15 +30,21 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   if (!product) return <p>Loading...</p>;
 
   return (
-    <section className="space-y-3">
-      <h1 className="text-xl font-semibold">{product.title}</h1>
-      <p>{product.description}</p>
-      <p>Price: {product.currency} {product.price_cents}</p>
-      <div className="flex items-center gap-2">
-        <label>Qty</label>
-        <input className="w-32 rounded border p-2" value={qty} onChange={(e) => setQty(e.target.value)} />
-        <button className="rounded bg-blue-600 px-4 py-2 text-white" onClick={onAdd}>
-          Add to Cart
+    <section className="space-y-4">
+      <div className="wb-shell p-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-green-700">{product.category}</p>
+        <h1 className="mt-1 text-2xl font-extrabold text-slate-900">{product.title}</h1>
+        <p className="mt-2 text-sm text-gray-600">{product.description || "No description provided."}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="rounded-full bg-green-100 px-3 py-1 font-semibold text-green-700">Unit: {product.unit}</span>
+          <span className="rounded-full bg-green-50 px-3 py-1 font-semibold text-green-700">{product.currency} {product.price_cents}</span>
+        </div>
+      </div>
+      <div className="wb-shell flex flex-wrap items-center gap-2 p-4">
+        <label className="text-sm font-medium">Qty</label>
+        <input className="w-32 rounded-full border border-green-200 bg-white px-4 py-2" value={qty} onChange={(e) => setQty(e.target.value)} />
+        <button className="wb-btn" onClick={onAdd}>
+          Add to cart
         </button>
       </div>
       {message && <p>{message}</p>}

@@ -38,15 +38,15 @@ export default function VendorShopPage() {
 
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-semibold">My shop</h1>
+      <h1 className="text-2xl font-extrabold text-slate-900">My shop</h1>
       {shop && <p className="text-sm">Status: <span className={`rounded px-2 py-1 ${shop.is_approved ? "bg-green-100" : "bg-yellow-100"}`}>{shop.is_approved ? "Approved" : "Pending approval"}</span></p>}
-      <div className="space-y-2 rounded border bg-white p-4">
-        <input className="w-full rounded border p-2" placeholder="Shop name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <textarea className="w-full rounded border p-2" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-        <input className="w-full rounded border p-2" placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-        <input className="w-full rounded border p-2" placeholder="Logo URL" value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} />
+      <div className="wb-shell space-y-2 p-4">
+        <input className="w-full rounded-full border border-green-200 bg-white px-4 py-2" placeholder="Shop name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <textarea className="w-full rounded-2xl border border-green-200 bg-white p-3" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        <input className="w-full rounded-full border border-green-200 bg-white px-4 py-2" placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
+        <input className="w-full rounded-full border border-green-200 bg-white px-4 py-2" placeholder="Logo URL" value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} />
         <label className="flex items-center gap-2"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} /> Active</label>
-        <button onClick={submit} disabled={saving} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">{saving ? "Saving..." : shop ? "Update shop" : "Create shop"}</button>
+        <button onClick={submit} disabled={saving} className="wb-btn disabled:opacity-50">{saving ? "Saving..." : shop ? "Update shop" : "Create shop"}</button>
       </div>
       {message && <p>{message}</p>}
     </div>

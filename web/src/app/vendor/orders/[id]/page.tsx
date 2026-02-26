@@ -42,18 +42,18 @@ export default function VendorOrderDetailPage({ params }: { params: { id: string
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Vendor order #{order.id}</h1>
-      <div className="rounded border bg-white p-4 text-sm">
+      <h1 className="text-2xl font-extrabold text-slate-900">Vendor order #{order.id}</h1>
+      <div className="wb-shell p-4 text-sm">
         <p>Order ref: {order.order}</p>
         <p>Buyer: {order.buyer_email ?? "-"}</p>
         <p>Shop: {order.shop_name ?? order.shop}</p>
         <p>Subtotal (NGN minor): {order.subtotal_ngn_cents}</p>
       </div>
-      <div className="rounded border bg-white p-4">
+      <div className="wb-shell p-4">
         <h2 className="mb-2 font-medium">Items</h2>
         <ul className="space-y-2 text-sm">
           {(order.items ?? []).map((item) => (
-            <li key={item.id} className="rounded border p-2">
+            <li key={item.id} className="rounded-xl border border-green-100 p-2">
               <p>{item.product_snapshot?.title ?? "Item"}</p>
               <p>Qty: {item.qty}</p>
               <p>Line total: {item.line_total_ngn_cents}</p>
@@ -63,10 +63,10 @@ export default function VendorOrderDetailPage({ params }: { params: { id: string
         </ul>
       </div>
       <div className="flex items-center gap-2">
-        <select className="rounded border p-2" value={status} onChange={(e) => setStatus(e.target.value as VendorOrder["status"])}>
+        <select className="rounded-full border border-green-200 bg-white px-4 py-2" value={status} onChange={(e) => setStatus(e.target.value as VendorOrder["status"])}>
           {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        <button disabled={saving} onClick={submit} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">{saving ? "Saving..." : "Update status"}</button>
+        <button disabled={saving} onClick={submit} className="wb-btn disabled:opacity-50">{saving ? "Saving..." : "Update status"}</button>
       </div>
       {message && <p>{message}</p>}
     </div>

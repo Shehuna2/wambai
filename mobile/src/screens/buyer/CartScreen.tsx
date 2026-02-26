@@ -32,15 +32,40 @@ const fromMilliUnits = (value: bigint) => {
 
 export const CartScreen = () => {
   const [grouped, setGrouped] = useState<Record<string, { shop: { id: number; name: string }; items: GroupedCartItem[] }>>({});
+  const [message, setMessage] = useState('');
 
   const load = () => api.get('/cart/').then(r => setGrouped(r.data.grouped_by_shop ?? {}));
 
   const updateQty = async (item: GroupedCartItem, direction: 1 | -1) => {
     const step = item.product.qty_step ?? '1';
+    setMessage('');
     const next = toMilliUnits(item.qty) + BigInt(direction) * toMilliUnits(step);
-    if (next <= 0n) return;
-    await api.patch(`/cart/items/${item.id}/`, { qty: fromMilliUnits(next) });
-    await load();
+    if (next <= 0n) {
+      setMessage('Quantity cannot be zero or negative.');
+      return;
+    }
+    const previousQty = item.qty;
+    const nextQty = fromMilliUnits(next);
+    setGrouped(prev => {
+      const cloned = { ...prev };
+      Object.values(cloned).forEach(group => {
+        group.items = group.items.map(it => it.id === item.id ? { ...it, qty: nextQty } : it);
+      });
+      return cloned;
+    });
+    try {
+      await api.patch(`/cart/items/${item.id}/`, { qty: nextQty });
+      await load();
+    } catch (err: any) {
+      setGrouped(prev => {
+        const cloned = { ...prev };
+        Object.values(cloned).forEach(group => {
+          group.items = group.items.map(it => it.id === item.id ? { ...it, qty: previousQty } : it);
+        });
+        return cloned;
+      });
+      setMessage(err?.response?.data?.detail ?? 'Unable to update quantity');
+    }
   };
 
   useEffect(() => {
@@ -63,6 +88,7 @@ export const CartScreen = () => {
           ))}
         </View>
       ))}
+      {!!message && <Text>{message}</Text>}
       <Button title="Refresh cart" onPress={() => load()} />
     </ScrollView>
   );

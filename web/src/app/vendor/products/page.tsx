@@ -25,8 +25,8 @@ export default function VendorProductsPage() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">My products</h1>
-        <Link href="/vendor/products/new" className="rounded bg-blue-600 px-3 py-2 text-white no-underline">New Product</Link>
+        <h1 className="text-2xl font-extrabold text-slate-900">My products</h1>
+        <Link href="/vendor/products/new" className="wb-btn no-underline">New Product</Link>
       </div>
 
       <div>
@@ -37,9 +37,9 @@ export default function VendorProductsPage() {
 
       {error && <p className="text-red-600">{error}</p>}
       {loading ? <p>Loading...</p> : (
-        <div className="overflow-x-auto rounded border bg-white">
+        <div className="wb-shell overflow-x-auto">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-green-50">
               <tr>
                 <th className="p-2 text-left">Image</th>
                 <th className="p-2 text-left">Title</th>

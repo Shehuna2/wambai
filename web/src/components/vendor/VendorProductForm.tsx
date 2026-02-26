@@ -51,12 +51,12 @@ export default function VendorProductForm({
   actionLabel: string;
 }) {
   return (
-    <div className="space-y-3 rounded border bg-white p-4">
-      <input className="w-full rounded border p-2" placeholder="Title" value={value.title} onChange={(e) => onChange({ ...value, title: e.target.value })} />
-      <textarea className="w-full rounded border p-2" placeholder="Description" value={value.description} onChange={(e) => onChange({ ...value, description: e.target.value })} />
+    <div className="wb-shell space-y-3 p-4">
+      <input className="w-full rounded-full border border-green-200 bg-white px-4 py-2" placeholder="Title" value={value.title} onChange={(e) => onChange({ ...value, title: e.target.value })} />
+      <textarea className="w-full rounded-2xl border border-green-200 bg-white p-3" placeholder="Description" value={value.description} onChange={(e) => onChange({ ...value, description: e.target.value })} />
 
       <div className="grid grid-cols-2 gap-3">
-        <select className="rounded border p-2" value={value.category} onChange={(e) => onChange({ ...value, category: e.target.value })}>
+        <select className="rounded-full border border-green-200 bg-white px-4 py-2" value={value.category} onChange={(e) => onChange({ ...value, category: e.target.value })}>
           {[
             { v: "clothing", l: "Clothing" },
             { v: "wool", l: "Wool" },
@@ -66,7 +66,7 @@ export default function VendorProductForm({
             <option key={c.v} value={c.v}>{c.l}</option>
           ))}
         </select>
-        <select className="rounded border p-2" value={value.unit} onChange={(e) => onChange({ ...value, unit: e.target.value })}>
+        <select className="rounded-full border border-green-200 bg-white px-4 py-2" value={value.unit} onChange={(e) => onChange({ ...value, unit: e.target.value })}>
           {["piece", "yard", "meter", "kg", "bundle"].map((unit) => (
             <option key={unit} value={unit}>{unit}</option>
           ))}
@@ -74,14 +74,14 @@ export default function VendorProductForm({
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <input className="rounded border p-2" type="number" placeholder="price_minor" value={value.price_minor} onChange={(e) => onChange({ ...value, price_minor: Number(e.target.value) })} />
-        <input className="rounded border p-2" placeholder="currency" value={value.currency} onChange={(e) => onChange({ ...value, currency: e.target.value.toUpperCase() })} />
+        <input className="rounded-full border border-green-200 bg-white px-4 py-2" type="number" placeholder="price_minor" value={value.price_minor} onChange={(e) => onChange({ ...value, price_minor: Number(e.target.value) })} />
+        <input className="rounded-full border border-green-200 bg-white px-4 py-2" placeholder="currency" value={value.currency} onChange={(e) => onChange({ ...value, currency: e.target.value.toUpperCase() })} />
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <input className="rounded border p-2" placeholder="stock_qty" value={value.stock_qty} onChange={(e) => onChange({ ...value, stock_qty: e.target.value })} />
-        <input className="rounded border p-2" placeholder="min_order_qty" value={value.min_order_qty} onChange={(e) => onChange({ ...value, min_order_qty: e.target.value })} />
-        <input className="rounded border p-2" placeholder="qty_step" value={value.qty_step} onChange={(e) => onChange({ ...value, qty_step: e.target.value })} />
+        <input className="rounded-full border border-green-200 bg-white px-4 py-2" placeholder="stock_qty" value={value.stock_qty} onChange={(e) => onChange({ ...value, stock_qty: e.target.value })} />
+        <input className="rounded-full border border-green-200 bg-white px-4 py-2" placeholder="min_order_qty" value={value.min_order_qty} onChange={(e) => onChange({ ...value, min_order_qty: e.target.value })} />
+        <input className="rounded-full border border-green-200 bg-white px-4 py-2" placeholder="qty_step" value={value.qty_step} onChange={(e) => onChange({ ...value, qty_step: e.target.value })} />
       </div>
 
       <div className="space-y-2">
@@ -95,11 +95,11 @@ export default function VendorProductForm({
         {uploading && <p className="text-sm text-gray-600">Uploading images...</p>}
         <div className="grid grid-cols-4 gap-2">
           {value.image_urls.map((url) => (
-            <div key={url} className="rounded border p-1">
+            <div key={url} className="rounded-xl border border-green-100 p-1">
               <Image src={url} alt="Product" width={320} height={192} className="h-24 w-full rounded object-cover" unoptimized />
               <button
                 type="button"
-                className="mt-1 w-full rounded border px-2 py-1 text-xs"
+                className="wb-btn-outline mt-1 w-full text-xs"
                 onClick={() => onChange({ ...value, image_urls: value.image_urls.filter((u) => u !== url) })}
               >
                 Remove
@@ -113,7 +113,7 @@ export default function VendorProductForm({
         <input type="checkbox" checked={value.is_active} onChange={(e) => onChange({ ...value, is_active: e.target.checked })} />
         Active
       </label>
-      <button disabled={loading} onClick={onSubmit} className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50">
+      <button disabled={loading} onClick={onSubmit} className="wb-btn disabled:opacity-50">
         {loading ? "Saving..." : actionLabel}
       </button>
     </div>

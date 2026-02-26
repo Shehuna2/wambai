@@ -82,3 +82,21 @@ class VendorOrderSerializer(serializers.ModelSerializer):
             "items",
         ]
         read_only_fields = ["order", "shop", "subtotal_ngn_cents", "shop_name", "order_created_at", "buyer_email", "items"]
+
+
+class OrderDetailSerializer(OrderSerializer):
+    vendor_orders = VendorOrderSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            "id",
+            "buyer",
+            "total_ngn_cents",
+            "status",
+            "payment_method",
+            "conversion_reference",
+            "created_at",
+            "updated_at",
+            "vendor_orders",
+        ]

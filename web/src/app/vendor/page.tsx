@@ -32,18 +32,20 @@ export default function VendorHomePage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Vendor dashboard</h1>
+      <div className="wb-shell p-5">
+        <h1 className="text-2xl font-extrabold text-slate-900">Vendor dashboard</h1>
+      </div>
       {error && <p className="text-red-600">{error}</p>}
       <div className="grid grid-cols-3 gap-3">
-        <div className="rounded border bg-white p-3">
+        <div className="wb-shell p-4">
           <p className="text-sm text-gray-500">Shop status</p>
           <p className="font-medium">{shop ? (shop.is_approved ? "Approved" : "Pending") : "No shop yet"}</p>
         </div>
-        <div className="rounded border bg-white p-3">
+        <div className="wb-shell p-4">
           <p className="text-sm text-gray-500">Products</p>
           <p className="font-medium">Approved: {products.filter((p) => p.is_approved).length} | Pending: {products.filter((p) => !p.is_approved).length}</p>
         </div>
-        <div className="rounded border bg-white p-3">
+        <div className="wb-shell p-4">
           <p className="text-sm text-gray-500">Vendor orders</p>
           <p className="font-medium">NEW {orderCounts.NEW} · PROC {orderCounts.PROCESSING} · SHIP {orderCounts.SHIPPED} · DONE {orderCounts.DELIVERED}</p>
         </div>

@@ -26,18 +26,18 @@ export default function LoginPage() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto max-w-md space-y-3">
-      <h1 className="text-xl font-semibold">Login</h1>
-      <input className="w-full rounded border p-2" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+    <form onSubmit={onSubmit} className="wb-shell mx-auto max-w-md space-y-3 p-6">
+      <h1 className="text-2xl font-extrabold text-slate-900">Login</h1>
+      <input className="w-full rounded-full border border-green-200 bg-white px-4 py-2" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
       <input
-        className="w-full rounded border p-2"
+        className="w-full rounded-full border border-green-200 bg-white px-4 py-2"
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
       {error && <p className="text-sm text-red-600">{error}</p>}
-      <button className="rounded bg-blue-600 px-4 py-2 text-white">Login</button>
+      <button className="wb-btn">Login</button>
     </form>
   );
 }

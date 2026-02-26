@@ -59,6 +59,19 @@ class WebhookSignatureTests(TestCase):
         self.assertEqual(entry.status, LedgerEntry.EntryStatus.POSTED)
         self.assertEqual(balance.available_cents, 1000)
 
+    def test_signature_with_sha512_prefix_is_accepted(self):
+        payload = {"id": "evt_2", "data": {"reference": "abc", "status": "successful"}}
+        raw = json.dumps(payload).encode()
+        digest = hmac.new(b"testsecret", raw, hashlib.sha512).hexdigest()
+        client = APIClient()
+        response = client.post(
+            "/api/payments/webhooks/fincra/",
+            data=raw,
+            content_type="application/json",
+            HTTP_X_SIGNATURE=f"sha512={digest}",
+        )
+        self.assertEqual(response.status_code, 200)
+
 
 @override_settings(FINCRA_WEBHOOK_SECRET="testsecret")
 class ConversionWebhookTests(TestCase):
@@ -92,4 +105,3 @@ class ConversionWebhookTests(TestCase):
         self.assertTrue(LedgerEntry.objects.filter(reference=f"{ref}:debit", status=LedgerEntry.EntryStatus.POSTED).exists())
         self.assertTrue(LedgerEntry.objects.filter(reference=f"{ref}:credit", status=LedgerEntry.EntryStatus.POSTED).exists())
         self.assertTrue(LedgerEntry.objects.filter(reference=f"purchase-{order.id}", status=LedgerEntry.EntryStatus.POSTED).exists())
-

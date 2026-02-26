@@ -10,6 +10,7 @@ from .serializers import (
     CartItemSerializer,
     CartSerializer,
     CheckoutSerializer,
+    OrderDetailSerializer,
     OrderSerializer,
     VendorOrderSerializer,
 )
@@ -120,6 +121,19 @@ class OrdersView(generics.ListAPIView):
 
     def get_queryset(self):
         return Order.objects.filter(buyer=self.request.user).order_by("-created_at")
+
+
+class OrderDetailView(generics.RetrieveAPIView):
+    serializer_class = OrderDetailSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            Order.objects.filter(buyer=self.request.user)
+            .prefetch_related("vendor_orders__items")
+            .select_related("buyer")
+            .order_by("-created_at")
+        )
 
 
 class VendorOrdersView(generics.ListAPIView):

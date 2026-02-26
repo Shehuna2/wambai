@@ -104,10 +104,14 @@ SUPPORTED_CURRENCIES = ["NGN", "XOF", "XAF", "GHS", "USD", "GBP", "EUR"]
 
 FINCRA_BASE_URL = os.getenv("FINCRA_BASE_URL", "https://sandboxapi.fincra.com")
 FINCRA_SECRET_KEY = os.getenv("FINCRA_SECRET_KEY", "")
+FINCRA_BUSINESS_ID = os.getenv("FINCRA_BUSINESS_ID", "")
 FINCRA_PUBLIC_KEY = os.getenv("FINCRA_PUBLIC_KEY", "")
 FINCRA_WEBHOOK_SECRET = os.getenv("FINCRA_WEBHOOK_SECRET", "")
 FINCRA_REDIRECT_URL = os.getenv("FINCRA_REDIRECT_URL", "https://example.com/redirect")
 FINCRA_WEBHOOK_PATH = os.getenv("FINCRA_WEBHOOK_PATH", "/api/payments/webhooks/fincra/")
+FINCRA_CHECKOUT_PATH = os.getenv("FINCRA_CHECKOUT_PATH", "/checkout/payments")
+FINCRA_QUOTES_PATH = os.getenv("FINCRA_QUOTES_PATH", "/quotes/generate")
+FINCRA_CONVERSIONS_PATH = os.getenv("FINCRA_CONVERSIONS_PATH", "/conversions/initiate")
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",

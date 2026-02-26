@@ -28,3 +28,31 @@ export type Product = {
   qty_step?: string;
 };
 export type Shop = { id: number; name: string; description: string; location: string };
+export type Order = {
+  id: number;
+  total_ngn_cents: number;
+  status: string;
+  payment_method: string;
+  created_at: string;
+};
+
+export type VendorOrderItem = {
+  id: number;
+  product_snapshot: { title?: string; unit?: string; [k: string]: unknown };
+  qty: string;
+  line_total_ngn_cents: number;
+};
+
+export type VendorOrder = {
+  id: number;
+  order: number;
+  shop: number;
+  shop_name?: string;
+  subtotal_ngn_cents: number;
+  status: string;
+  items?: VendorOrderItem[];
+};
+
+export type OrderDetail = Order & {
+  vendor_orders?: VendorOrder[];
+};

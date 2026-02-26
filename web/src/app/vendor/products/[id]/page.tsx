@@ -60,7 +60,7 @@ export default function EditVendorProductPage({ params }: { params: { id: string
 
   return (
     <div className="space-y-3">
-      <h1 className="text-xl font-semibold">Edit product</h1>
+      <h1 className="text-2xl font-extrabold text-slate-900">Edit product</h1>
       {error && <p className="text-red-600">{error}</p>}
       <VendorProductForm
         value={form}

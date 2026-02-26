@@ -15,6 +15,15 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["is_approved", "approved_at", "approved_by", "created_at", "updated_at"]
 
+    def create(self, validated_data):
+        shop = validated_data.get("shop")
+        product = Product(**validated_data)
+        if shop and shop.is_approved:
+            product.set_approval(True)
+        product.full_clean()
+        product.save()
+        return product
+
     def validate(self, attrs):
         min_qty = Decimal(attrs.get("min_order_qty", getattr(self.instance, "min_order_qty", 1)))
         step = Decimal(attrs.get("qty_step", getattr(self.instance, "qty_step", 1)))

@@ -1,9 +1,11 @@
 from rest_framework import permissions
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from payments.models import WebhookEvent
 from payments.fincra import FincraClient
-from .models import LedgerEntry
+from .models import LedgerEntry, WalletAdjustment
 from .serializers import LedgerEntrySerializer, TopUpInitSerializer, WalletBalanceSerializer
 from .services import create_pending_entry, get_or_create_wallet
 
@@ -45,3 +47,47 @@ class TopUpInitView(APIView):
             customer_email=request.user.email,
         )
         return Response({"reference": entry.reference, "checkout_url": checkout_url})
+
+
+class WalletAdjustmentAuditView(ListAPIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        rows = (
+            WalletAdjustment.objects.select_related("wallet__user", "created_by")
+            .order_by("-created_at")[:100]
+        )
+        return Response(
+            [
+                {
+                    "id": row.id,
+                    "reference": row.reference,
+                    "wallet_user_email": row.wallet.user.email,
+                    "currency": row.currency,
+                    "amount_cents": row.amount_cents,
+                    "reason": row.reason,
+                    "created_by_email": row.created_by.email,
+                    "created_at": row.created_at,
+                }
+                for row in rows
+            ]
+        )
+
+
+class WebhookEventAuditView(ListAPIView):
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        rows = WebhookEvent.objects.order_by("-received_at")[:100]
+        return Response(
+            [
+                {
+                    "id": row.id,
+                    "provider": row.provider,
+                    "event_id": row.event_id,
+                    "received_at": row.received_at,
+                    "payload": row.payload,
+                }
+                for row in rows
+            ]
+        )

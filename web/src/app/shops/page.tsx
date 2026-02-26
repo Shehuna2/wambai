@@ -14,16 +14,20 @@ export default function ShopsPage() {
   }, []);
 
   return (
-    <section className="space-y-3">
-      <h1 className="text-xl font-semibold">Shops</h1>
+    <section className="space-y-4">
+      <div className="wb-shell p-5">
+        <h1 className="text-2xl font-extrabold text-slate-900">Shops</h1>
+        <p className="mt-1 text-sm text-gray-600">Browse approved Wambai vendor stores by location and open their live product catalogs.</p>
+      </div>
       {error && <p className="text-red-600">{error}</p>}
-      <ul className="space-y-2">
+      <ul className="grid gap-3 md:grid-cols-2">
         {shops.map((shop) => (
-          <li key={shop.id} className="rounded border bg-white p-3">
-            <Link href={`/shops/${shop.id}`} className="font-medium">
-              {shop.name}
+          <li key={shop.id} className="wb-shell p-4">
+            <Link href={`/shops/${shop.id}`} className="block space-y-2 no-underline">
+              <p className="text-lg font-semibold text-slate-900">{shop.name}</p>
+              <p className="text-sm text-gray-600">{shop.location || "Location not specified"}</p>
+              <span className="inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">Open shop</span>
             </Link>
-            <p className="text-sm text-gray-600">{shop.location}</p>
           </li>
         ))}
       </ul>

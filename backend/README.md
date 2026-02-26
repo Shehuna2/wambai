@@ -27,10 +27,14 @@ python manage.py runserver
 - `DB_ENGINE`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`
 - `FINCRA_BASE_URL`
 - `FINCRA_SECRET_KEY`
+- `FINCRA_BUSINESS_ID`
 - `FINCRA_PUBLIC_KEY`
 - `FINCRA_WEBHOOK_SECRET`
 - `FINCRA_REDIRECT_URL`
 - `FINCRA_WEBHOOK_PATH`
+- `FINCRA_CHECKOUT_PATH` (default `/checkout/payments`)
+- `FINCRA_QUOTES_PATH` (default `/quotes/generate`)
+- `FINCRA_CONVERSIONS_PATH` (default `/conversions/initiate`)
 
 ## Currency Minor-Unit Notes
 

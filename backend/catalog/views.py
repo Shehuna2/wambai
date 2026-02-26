@@ -22,7 +22,7 @@ class ProductViewSet(viewsets.ModelViewSet):
             return qs
         if user.is_authenticated and user.is_vendor:
             return qs.filter(shop__owner=user)
-        return qs.filter(is_active=True, shop__is_active=True, shop__is_approved=True)
+        return qs.filter(is_active=True, is_approved=True, shop__is_active=True, shop__is_approved=True)
 
     def perform_create(self, serializer):
         shop = serializer.validated_data.get("shop")

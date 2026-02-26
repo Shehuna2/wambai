@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Button, ScrollView, Text, View } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 import { api } from '../../api/client';
 
@@ -9,18 +10,45 @@ export const CheckoutScreen = () => {
   const [method, setMethod] = useState<'WALLET' | 'FINCRA'>('WALLET');
   const [currency, setCurrency] = useState('NGN');
   const [message, setMessage] = useState('');
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const [loadingUrl, setLoadingUrl] = useState(false);
 
   const submit = async () => {
     try {
+      setMessage('');
+      setLoadingUrl(false);
       const payload: any = { payment_method: method };
       if (method === 'WALLET') payload.wallet_currency = currency;
       const { data } = await api.post('/checkout/', payload);
-      if (data.status === 'PAID') setMessage('Order paid. Redirecting to confirmation.');
-      else setMessage('Waiting for conversion/payment confirmation. Pull to refresh orders.');
+      if (typeof data.checkout_url === 'string') {
+        setLoadingUrl(true);
+        setCheckoutUrl(data.checkout_url);
+        return;
+      }
+      if (data.status === 'PAID') {
+        setMessage('Order paid.');
+      } else {
+        setMessage('Waiting for conversion/payment confirmation. Pull to refresh orders.');
+      }
     } catch (err: any) {
       setMessage(err?.response?.data?.detail ?? 'Checkout failed');
     }
   };
+
+  if (checkoutUrl) {
+    return (
+      <View style={{ flex: 1 }}>
+        <View style={{ padding: 12, gap: 8 }}>
+          <Button title="Close checkout" onPress={() => setCheckoutUrl(null)} />
+          {loadingUrl && <Text>Loading payment page...</Text>}
+        </View>
+        <WebView
+          source={{ uri: checkoutUrl }}
+          onLoadEnd={() => setLoadingUrl(false)}
+        />
+      </View>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }}>

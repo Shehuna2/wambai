@@ -1,4 +1,15 @@
-import type { CartResponse, Order, Product, Shop, User, VendorOrder, WalletResponse } from "@/lib/types";
+import type {
+  CartResponse,
+  CheckoutInit,
+  Order,
+  Product,
+  Shop,
+  User,
+  VendorOrder,
+  WalletAdjustmentAudit,
+  WalletResponse,
+  WebhookEventAudit,
+} from "@/lib/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000/api";
 
@@ -67,7 +78,9 @@ export const topupInit = (payload: { currency: string; amount_minor: number }) =
   });
 
 export const checkout = (payload: { payment_method: string; wallet_currency?: string }) =>
-  api<Order>("/checkout/", { method: "POST", body: JSON.stringify(payload) });
+  api<Order | CheckoutInit>("/checkout/", { method: "POST", body: JSON.stringify(payload) });
+export const listOrders = () => api<Order[]>("/orders/");
+export const getOrder = (id: number | string) => api<Order>(`/orders/${id}/`);
 
 export const getMyShop = async () => {
   try {
@@ -136,3 +149,6 @@ export const listVendorOrders = () => api<VendorOrder[]>("/vendor/orders/");
 export const getVendorOrder = (id: number | string) => api<VendorOrder>(`/vendor/orders/${id}/`);
 export const updateVendorOrderStatus = (id: number | string, status: VendorOrder["status"]) =>
   api<VendorOrder>(`/vendor/orders/${id}/`, { method: "PATCH", body: JSON.stringify({ status }) });
+
+export const listWalletAdjustmentsAudit = () => api<WalletAdjustmentAudit[]>("/admin/audit/wallet-adjustments/");
+export const listWebhookEventsAudit = () => api<WebhookEventAudit[]>("/admin/audit/webhooks/");

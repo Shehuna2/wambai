@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from rest_framework.test import APIClient
 
 from catalog.models import Product
 from payments.models import FxConversion
@@ -10,7 +11,7 @@ from shops.models import Shop
 from wallet.models import LedgerEntry
 from wallet.services import create_pending_entry, get_or_create_wallet, post_ledger_entry
 
-from .models import Cart, CartItem, Order
+from .models import Cart, CartItem, Order, OrderItem, VendorOrder
 from .serializers import CartItemSerializer
 from .services import wallet_checkout
 
@@ -95,3 +96,42 @@ class CartQtyValidationTests(TestCase):
             stock_qty=Decimal("10"),
         )
         self.assertFalse(CartItemSerializer(data={"product": piece.id, "qty": "1.5"}).is_valid())
+
+
+class OrderDetailApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.buyer = get_user_model().objects.create_user(email="detail-buyer@example.com", password="pass")
+        self.other = get_user_model().objects.create_user(email="detail-other@example.com", password="pass")
+        self.vendor = get_user_model().objects.create_user(email="detail-vendor@example.com", password="pass", is_vendor=True)
+        shop = Shop.objects.create(owner=self.vendor, name="Detail Shop")
+        self.order = Order.objects.create(
+            buyer=self.buyer,
+            total_ngn_cents=1500,
+            status=Order.OrderStatus.PAID,
+            payment_method=Order.PaymentMethod.WALLET,
+        )
+        vendor_order = VendorOrder.objects.create(
+            order=self.order,
+            shop=shop,
+            subtotal_ngn_cents=1500,
+        )
+        OrderItem.objects.create(
+            vendor_order=vendor_order,
+            product_snapshot={"title": "Fabric", "unit": "yard"},
+            qty=Decimal("1.5"),
+            line_total_ngn_cents=1500,
+        )
+
+    def test_buyer_can_fetch_own_order_detail(self):
+        self.client.force_authenticate(user=self.buyer)
+        response = self.client.get(f"/api/orders/{self.order.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["id"], self.order.id)
+        self.assertEqual(len(response.data["vendor_orders"]), 1)
+        self.assertEqual(len(response.data["vendor_orders"][0]["items"]), 1)
+
+    def test_other_user_cannot_fetch_order_detail(self):
+        self.client.force_authenticate(user=self.other)
+        response = self.client.get(f"/api/orders/{self.order.id}/")
+        self.assertEqual(response.status_code, 404)

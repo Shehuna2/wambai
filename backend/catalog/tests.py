@@ -60,7 +60,7 @@ class ProductApprovalVisibilityTests(TestCase):
         self.admin = get_user_model().objects.create_user(email="admin-prod@example.com", password="pass", is_staff=True)
 
         self.shop = Shop.objects.create(owner=self.vendor, name="Vendor Shop", is_active=True, is_approved=True)
-        self.product = Product.objects.create(
+        self.unapproved_product = Product.objects.create(
             shop=self.shop,
             title="Visible Fabric",
             unit=Product.Unit.YARD,
@@ -71,12 +71,24 @@ class ProductApprovalVisibilityTests(TestCase):
             is_active=True,
             is_approved=False,
         )
+        self.approved_product = Product.objects.create(
+            shop=self.shop,
+            title="Approved Fabric",
+            unit=Product.Unit.YARD,
+            price_cents=1200,
+            stock_qty=Decimal("10"),
+            min_order_qty=Decimal("1"),
+            qty_step=Decimal("0.5"),
+            is_active=True,
+            is_approved=True,
+        )
 
-    def test_buyer_can_see_product_even_when_product_unapproved_if_shop_approved(self):
+    def test_buyer_cannot_see_unapproved_product(self):
         self.client.force_authenticate(user=self.buyer)
         response = self.client.get("/api/products/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["id"], self.approved_product.id)
 
     def test_buyer_cannot_see_when_shop_inactive(self):
         self.shop.is_active = False
@@ -90,13 +102,13 @@ class ProductApprovalVisibilityTests(TestCase):
         self.client.force_authenticate(user=self.vendor)
         response = self.client.get("/api/products/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 2)
 
     def test_admin_can_see_product(self):
         self.client.force_authenticate(user=self.admin)
         response = self.client.get("/api/products/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data), 2)
 
 
 class VendorProductCreateTests(TestCase):
@@ -124,4 +136,4 @@ class VendorProductCreateTests(TestCase):
         self.assertEqual(response.status_code, 201, response.data)
         product = Product.objects.get(id=response.data["id"])
         self.assertEqual(product.shop_id, self.shop.id)
-
+        self.assertTrue(product.is_approved)

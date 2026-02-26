@@ -42,7 +42,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "email", "phone", "is_vendor", "is_buyer", "created_at", "profile", "wallet_balances"]
+        fields = ["id", "email", "phone", "is_vendor", "is_buyer", "is_staff", "created_at", "profile", "wallet_balances"]
 
     def get_wallet_balances(self, obj):
         wallet, _ = Wallet.objects.get_or_create(user=obj)

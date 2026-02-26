@@ -2,10 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap");
+
+:root {
+  --wb-green-50: #f3fbf4;
+  --wb-green-100: #e2f6e4;
+  --wb-green-500: #4caf50;
+  --wb-green-600: #3f9f43;
+  --wb-green-700: #2f7a34;
+  --wb-ink-900: #2f3e46;
+  --wb-surface: #ffffff;
+}
+
 body {
-  @apply bg-gray-50 text-gray-900;
+  font-family: "Poppins", sans-serif;
+  @apply text-gray-900;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(76, 175, 80, 0.16), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgba(99, 179, 237, 0.12), transparent 38%),
+    var(--wb-green-50);
 }
 
 a {
-  @apply text-blue-600 hover:underline;
+  @apply text-green-700 hover:underline;
+}
+
+main {
+  @apply relative;
+}
+
+.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+.dark a {
+  @apply text-sky-400;
+}
+
+.dark .bg-white {
+  @apply bg-slate-900;
+}
+
+.dark .border {
+  @apply border-slate-700;
+}
+
+.dark .text-gray-500,
+.dark .text-gray-600 {
+  @apply text-slate-300;
+}
+
+.wb-shell {
+  @apply rounded-2xl border border-green-100 bg-white/90 shadow-sm backdrop-blur;
+}
+
+.wb-btn {
+  @apply inline-flex items-center justify-center rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700;
+}
+
+.wb-btn-outline {
+  @apply inline-flex items-center justify-center rounded-full border border-green-300 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-50;
 }

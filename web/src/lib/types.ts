@@ -17,6 +17,7 @@ export type User = {
   phone: string;
   is_vendor: boolean;
   is_buyer: boolean;
+  is_staff: boolean;
   created_at: string;
   profile: UserProfile;
   wallet_balances: WalletBalance[];
@@ -74,7 +75,15 @@ export type Order = {
   total_ngn_cents: number;
   status: string;
   payment_method: string;
+  conversion_reference?: string;
   created_at: string;
+  updated_at?: string;
+  vendor_orders?: VendorOrder[];
+};
+
+export type CheckoutInit = {
+  order_id: number;
+  checkout_url: string;
 };
 
 export type WalletResponse = {
@@ -106,4 +115,23 @@ export type VendorOrder = {
   order_created_at?: string;
   buyer_email?: string;
   items?: VendorOrderItem[];
+};
+
+export type WalletAdjustmentAudit = {
+  id: number;
+  reference: string;
+  wallet_user_email: string;
+  currency: string;
+  amount_cents: number;
+  reason: string;
+  created_by_email: string;
+  created_at: string;
+};
+
+export type WebhookEventAudit = {
+  id: number;
+  provider: string;
+  event_id: string;
+  received_at: string;
+  payload: Record<string, unknown>;
 };
