@@ -16,15 +16,17 @@
 
 body {
   font-family: "Poppins", sans-serif;
-  @apply text-gray-900;
-  background:
-    radial-gradient(circle at 0% 0%, rgba(76, 175, 80, 0.16), transparent 40%),
-    radial-gradient(circle at 100% 100%, rgba(99, 179, 237, 0.12), transparent 38%),
-    var(--wb-green-50);
+  @apply text-slate-900;
+  background: var(--wb-green-50);
 }
 
 a {
-  @apply text-green-700 hover:underline;
+  color: var(--wb-green-700);
+  @apply font-medium;
+}
+
+a:hover {
+  @apply underline;
 }
 
 main {
@@ -52,14 +54,60 @@ main {
   @apply text-slate-300;
 }
 
-.wb-shell {
-  @apply rounded-2xl border border-green-100 bg-white/90 shadow-sm backdrop-blur;
-}
+@layer components {
+  .wb-shell {
+    @apply rounded-3xl border bg-white shadow-sm;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
 
-.wb-btn {
-  @apply inline-flex items-center justify-center rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700;
-}
+  .wb-btn {
+    @apply inline-flex items-center justify-center rounded-2xl px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition;
+    background-color: var(--wb-green-700);
+  }
 
-.wb-btn-outline {
-  @apply inline-flex items-center justify-center rounded-full border border-green-300 px-4 py-2 text-sm font-semibold text-green-700 transition hover:bg-green-50;
+  .wb-btn:hover {
+    background-color: var(--wb-green-600);
+  }
+
+  .wb-btn:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px rgba(63, 159, 67, 0.18),
+      0 0 0 6px rgba(63, 159, 67, 0.10);
+  }
+
+  .wb-btn-outline {
+    @apply inline-flex items-center justify-center rounded-2xl border bg-white px-4 py-2.5 text-sm font-semibold shadow-sm transition;
+    border-color: rgba(15, 23, 42, 0.10);
+    color: var(--wb-green-700);
+  }
+
+  .wb-btn-outline:hover {
+    @apply bg-green-50;
+    border-color: rgba(63, 159, 67, 0.25);
+  }
+
+  .wb-btn-outline:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px rgba(63, 159, 67, 0.18),
+      0 0 0 6px rgba(63, 159, 67, 0.10);
+  }
+
+  .wb-input {
+    @apply w-full rounded-2xl border bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400;
+    border-color: rgba(15, 23, 42, 0.10);
+  }
+
+  .wb-input:focus {
+    border-color: rgba(63, 159, 67, 0.40);
+    box-shadow:
+      0 0 0 2px rgba(63, 159, 67, 0.14),
+      0 0 0 6px rgba(63, 159, 67, 0.06);
+  }
+
+  .wb-pill {
+    @apply inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1;
+    border-color: rgba(63, 159, 67, 0.25);
+  }
 }
